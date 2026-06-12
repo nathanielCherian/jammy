@@ -2,22 +2,30 @@ import { Track } from '../types';
 
 export class AudioEngine {
   private ctx: AudioContext | null = null;
+  private masterGain: GainNode | null = null;
   private buffers: Map<string, AudioBuffer> = new Map();
   private gainNodes: Map<string, GainNode> = new Map();
   private sourceNodes: AudioBufferSourceNode[] = [];
   private startedAtCtxTime = 0;
   private playheadOffset = 0;
 
-  async loadBuffers(tracks: Track[]): Promise<void> {
+  private ensureContext(): AudioContext {
     if (!this.ctx) {
       this.ctx = new AudioContext();
+      this.masterGain = this.ctx.createGain();
+      this.masterGain.connect(this.ctx.destination);
     }
+    return this.ctx;
+  }
+
+  async loadBuffers(tracks: Track[]): Promise<void> {
+    const ctx = this.ensureContext();
     await Promise.all(
       tracks.map(async (track) => {
         try {
           const res = await fetch(track.audioUrl, { mode: 'cors' });
           const arrayBuffer = await res.arrayBuffer();
-          const audioBuffer = await this.ctx!.decodeAudioData(arrayBuffer);
+          const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
           this.buffers.set(track.id, audioBuffer);
         } catch (err) {
           console.warn(`Failed to load audio for track "${track.name}":`, err);
@@ -34,8 +42,23 @@ export class AudioEngine {
     return this.buffers.get(id);
   }
 
+  addBuffer(id: string, buffer: AudioBuffer): void {
+    this.buffers.set(id, buffer);
+  }
+
+  getAudioContext(): AudioContext {
+    return this.ensureContext();
+  }
+
+  setMonitorEnabled(enabled: boolean): void {
+    if (this.masterGain) {
+      this.masterGain.gain.value = enabled ? 1 : 0;
+    }
+  }
+
   private scheduleAllTracks(tracks: Track[]): void {
     const ctx = this.ctx!;
+    const destination = this.masterGain!;
     this.sourceNodes = [];
     this.gainNodes = new Map();
 
@@ -45,7 +68,7 @@ export class AudioEngine {
 
       const gainNode = ctx.createGain();
       gainNode.gain.value = track.enabled ? track.volume : 0;
-      gainNode.connect(ctx.destination);
+      gainNode.connect(destination);
       this.gainNodes.set(track.id, gainNode);
 
       const offset = this.playheadOffset;
@@ -84,18 +107,15 @@ export class AudioEngine {
   }
 
   async play(tracks: Track[]): Promise<void> {
-    if (!this.ctx) {
-      this.ctx = new AudioContext();
+    const ctx = this.ensureContext();
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
     }
-    if (this.ctx.state === 'suspended') {
-      await this.ctx.resume();
-    }
-    // Capture current position before tearing down sources (handles mid-playback restart)
     if (this.sourceNodes.length > 0) {
       this.playheadOffset = this.getCurrentTime();
     }
     this.stopAllSources();
-    this.startedAtCtxTime = this.ctx.currentTime;
+    this.startedAtCtxTime = ctx.currentTime;
     this.scheduleAllTracks(tracks);
   }
 

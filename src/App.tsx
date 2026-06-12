@@ -7,18 +7,30 @@ export default function App() {
   const {
     tracks,
     clipDurations,
+    audioBuffers,
     playbackState,
     currentTime,
     isLoading,
+    monitorEnabled,
     play,
     pause,
     stop,
+    startRecording,
+    stopRecording,
     setTrackStartTime,
     commitTrackStartTime,
     setTrackVolume,
     toggleTrackEnabled,
-    audioBuffers,
+    toggleMonitor,
   } = useAudioEngine();
+
+  const handleRecord = () => {
+    if (playbackState === 'recording') {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   return (
     <div className={styles.app}>
@@ -26,9 +38,12 @@ export default function App() {
         playbackState={playbackState}
         currentTime={currentTime}
         isLoading={isLoading}
+        monitorEnabled={monitorEnabled}
         onPlay={play}
         onPause={pause}
         onStop={stop}
+        onRecord={handleRecord}
+        onToggleMonitor={toggleMonitor}
       />
       <Timeline
         tracks={tracks}

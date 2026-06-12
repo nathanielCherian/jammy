@@ -3,6 +3,9 @@ import { Track, PlaybackState } from '../types';
 import { INITIAL_TRACKS } from '../data/tracks';
 import { SONG_DURATION } from '../constants';
 import { AudioEngine } from './audioEngine';
+import { Recorder } from './recorder';
+
+const REC_COLORS = ['#ff7043', '#ab47bc', '#26a69a', '#ef5350', '#7e57c2', '#26c6da'];
 
 export function useAudioEngine() {
   const [tracks, setTracks] = useState<Track[]>(INITIAL_TRACKS);
@@ -11,11 +14,16 @@ export function useAudioEngine() {
   const [isLoading, setIsLoading] = useState(true);
   const [clipDurations, setClipDurations] = useState<Map<string, number>>(new Map());
   const [audioBuffers, setAudioBuffers] = useState<Map<string, AudioBuffer>>(new Map());
+  const [monitorEnabled, setMonitorEnabled] = useState(true);
 
   const engineRef = useRef(new AudioEngine());
+  const recorderRef = useRef(new Recorder());
   const rafRef = useRef(0);
   const tracksRef = useRef(tracks);
   tracksRef.current = tracks;
+
+  const recordStartTimeRef = useRef(0);
+  const recordingCounterRef = useRef(0);
 
   useEffect(() => {
     engineRef.current.loadBuffers(INITIAL_TRACKS).then(() => {
@@ -32,10 +40,11 @@ export function useAudioEngine() {
       setAudioBuffers(buffers);
       setIsLoading(false);
     });
+    return () => recorderRef.current.release();
   }, []);
 
   useEffect(() => {
-    if (playbackState === 'playing') {
+    if (playbackState === 'playing' || playbackState === 'recording') {
       const tick = () => {
         const t = engineRef.current.getCurrentTime();
         if (t >= SONG_DURATION) {
@@ -68,6 +77,49 @@ export function useAudioEngine() {
     setCurrentTime(0);
   }, []);
 
+  const startRecording = useCallback(async () => {
+    // Start playback if not already playing
+    if (playbackState === 'stopped' || playbackState === 'paused') {
+      await engineRef.current.play(tracksRef.current);
+    }
+    recordStartTimeRef.current = engineRef.current.getCurrentTime();
+    await recorderRef.current.start();
+    setPlaybackState('recording');
+  }, [playbackState]);
+
+  const stopRecording = useCallback(async () => {
+    const blob = await recorderRef.current.stop();
+    setPlaybackState('playing');
+
+    try {
+      const ctx = engineRef.current.getAudioContext();
+      const arrayBuffer = await blob.arrayBuffer();
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+      recordingCounterRef.current += 1;
+      const recNum = recordingCounterRef.current;
+      const id = `rec-${recNum}`;
+      const color = REC_COLORS[(recNum - 1) % REC_COLORS.length];
+      const newTrack: Track = {
+        id,
+        name: `Rec ${recNum}`,
+        audioUrl: '',
+        startTime: recordStartTimeRef.current,
+        volume: 0.85,
+        color,
+        enabled: true,
+      };
+
+      engineRef.current.addBuffer(id, audioBuffer);
+
+      setTracks((prev) => [...prev, newTrack]);
+      setClipDurations((prev) => new Map(prev).set(id, audioBuffer.duration));
+      setAudioBuffers((prev) => new Map(prev).set(id, audioBuffer));
+    } catch (err) {
+      console.warn('Failed to decode recording:', err);
+    }
+  }, []);
+
   const setTrackStartTime = useCallback((id: string, newStart: number) => {
     setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, startTime: newStart } : t)));
   }, []);
@@ -97,6 +149,13 @@ export function useAudioEngine() {
     );
   }, []);
 
+  const toggleMonitor = useCallback(() => {
+    setMonitorEnabled((prev) => {
+      engineRef.current.setMonitorEnabled(!prev);
+      return !prev;
+    });
+  }, []);
+
   return {
     tracks,
     clipDurations,
@@ -104,12 +163,16 @@ export function useAudioEngine() {
     playbackState,
     currentTime,
     isLoading,
+    monitorEnabled,
     play,
     pause,
     stop,
+    startRecording,
+    stopRecording,
     setTrackStartTime,
     commitTrackStartTime,
     setTrackVolume,
     toggleTrackEnabled,
+    toggleMonitor,
   };
 }
