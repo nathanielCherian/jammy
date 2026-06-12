@@ -8,7 +8,7 @@ export const INITIAL_TRACKS: Track[] = [
     startTime: 0,
     volume: 0.85,
     color: '#e05252',
-    enabled: true,
+    enabled: false,
   },
   {
     id: 'track2',
@@ -17,7 +17,7 @@ export const INITIAL_TRACKS: Track[] = [
     startTime: 2,
     volume: 0.75,
     color: '#52a8e0',
-    enabled: true,
+    enabled: false,
   },
   {
     id: 'track3',
@@ -26,6 +26,6 @@ export const INITIAL_TRACKS: Track[] = [
     startTime: 1,
     volume: 0.75,
     color: '#52e09e',
-    enabled: true,
+    enabled: false,
   },
 ];

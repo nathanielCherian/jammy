@@ -1,9 +1,10 @@
-const CONSTRAINTS: MediaStreamConstraints = {
+const CONSTRAINTS = {
   audio: {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
-  },
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl: false,
+    suppressLocalAudioPlayback: true, // Chrome 94+: prevents OS routing playback into capture
+  } as MediaTrackConstraints,
 };
 
 export class Recorder {
