@@ -1,0 +1,226 @@
+.timelineScroll {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  background: var(--bg-darkest);
+}
+
+.timelineInner {
+  min-height: 100%;
+  position: relative;
+}
+
+/* ── Ruler ── */
+.ruler {
+  position: sticky;
+  top: 0;
+  height: 28px;
+  background: var(--bg-light);
+  border-bottom: 1px solid var(--border);
+  z-index: 10;
+  user-select: none;
+}
+
+.majorTick {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.majorTick::before {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 10px;
+  background: var(--border);
+  margin-top: 2px;
+}
+
+.tickLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 3px;
+  margin-top: 1px;
+}
+
+.minorTick {
+  position: absolute;
+  top: 4px;
+  width: 1px;
+  height: 6px;
+  background: var(--border);
+  opacity: 0.5;
+}
+
+/* ── Tracks area ── */
+.tracksArea {
+  position: relative;
+}
+
+/* ── Playhead ── */
+.playhead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--playhead);
+  z-index: 20;
+  pointer-events: none;
+  will-change: transform;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+}
+
+/* ── Lane ── */
+.lane {
+  display: flex;
+  height: var(--track-height);
+  border-bottom: 1px solid var(--border);
+}
+
+.lane:last-child {
+  border-bottom: none;
+}
+
+.laneDisabled .laneClipArea {
+  opacity: 0.35;
+}
+
+.laneDisabled .trackName {
+  color: var(--text-muted);
+}
+
+.laneLabel {
+  width: var(--label-width);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--bg-dark);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  left: 0;
+  z-index: 5;
+}
+
+/* ── Enable toggle ── */
+.enableToggle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--bg-lighter);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.enableToggleOn {
+  background: var(--track-color);
+  border-color: var(--track-color);
+}
+
+.enableToggleOff {
+  background: transparent;
+  border-color: var(--bg-lighter);
+}
+
+.enableToggle:hover {
+  filter: brightness(1.2);
+}
+
+.trackName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.volumeSlider {
+  -webkit-appearance: none;
+  width: 56px;
+  height: 4px;
+  background: var(--bg-lighter);
+  border-radius: 2px;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text);
+  cursor: pointer;
+}
+
+.volumeSlider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text);
+  cursor: pointer;
+  border: none;
+}
+
+.laneClipArea {
+  flex: 1;
+  position: relative;
+  background: var(--bg-dark);
+}
+
+/* ── Clip ── */
+.clip {
+  position: absolute;
+  top: 10px;
+  height: calc(var(--track-height) - 20px);
+  border-radius: 5px;
+  border: 1.5px solid transparent;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  user-select: none;
+  opacity: 0.88;
+  transition: opacity 0.1s, box-shadow 0.1s;
+}
+
+.clip:hover {
+  opacity: 1;
+}
+
+.clipDragging {
+  cursor: grabbing;
+  opacity: 1;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  z-index: 15;
+}
+
+.waveform {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.clipLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
