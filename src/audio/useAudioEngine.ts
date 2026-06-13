@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Track, PlaybackState } from '../types';
-import { INITIAL_TRACKS } from '../data/tracks';
 import { SONG_DURATION } from '../constants';
 import { AudioEngine } from './audioEngine';
 import { Recorder } from './recorder';
 
 const REC_COLORS = ['#ff7043', '#ab47bc', '#26a69a', '#ef5350', '#7e57c2', '#26c6da'];
 
-export function useAudioEngine() {
-  const [tracks, setTracks] = useState<Track[]>(INITIAL_TRACKS);
+export function useAudioEngine(initialTracks: Track[] = []) {
+  const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [playbackState, setPlaybackState] = useState<PlaybackState>('stopped');
   const [currentTime, setCurrentTime] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(initialTracks.length > 0);
   const [clipDurations, setClipDurations] = useState<Map<string, number>>(new Map());
   const [audioBuffers, setAudioBuffers] = useState<Map<string, AudioBuffer>>(new Map());
   const [monitorEnabled, setMonitorEnabled] = useState(true);
@@ -26,12 +25,16 @@ export function useAudioEngine() {
   const recordingCounterRef = useRef(0);
 
   useEffect(() => {
-    engineRef.current.loadBuffers(INITIAL_TRACKS).then(() => {
+    if (initialTracks.length === 0) {
+      setIsLoading(false);
+      return () => recorderRef.current.release();
+    }
+    engineRef.current.loadBuffers(initialTracks).then(() => {
       const durations = new Map(
-        INITIAL_TRACKS.map((t) => [t.id, engineRef.current.getBufferDuration(t.id)])
+        initialTracks.map((t) => [t.id, engineRef.current.getBufferDuration(t.id)])
       );
       const buffers = new Map(
-        INITIAL_TRACKS.flatMap((t) => {
+        initialTracks.flatMap((t) => {
           const buf = engineRef.current.getBuffer(t.id);
           return buf ? [[t.id, buf] as [string, AudioBuffer]] : [];
         })
@@ -41,7 +44,7 @@ export function useAudioEngine() {
       setIsLoading(false);
     });
     return () => recorderRef.current.release();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (playbackState === 'playing' || playbackState === 'recording') {

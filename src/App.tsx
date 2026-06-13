@@ -1,9 +1,15 @@
+import { Track } from './types';
 import { useAudioEngine } from './audio/useAudioEngine';
 import { TransportBar } from './components/TransportBar/TransportBar';
 import { Timeline } from './components/Timeline/Timeline';
 import styles from './App.module.css';
 
-export default function App() {
+interface Props {
+  initialTracks: Track[];
+  sessionCode: string;
+}
+
+export default function App({ initialTracks, sessionCode }: Props) {
   const {
     tracks,
     clipDurations,
@@ -22,7 +28,7 @@ export default function App() {
     setTrackVolume,
     toggleTrackEnabled,
     toggleMonitor,
-  } = useAudioEngine();
+  } = useAudioEngine(initialTracks);
 
   const handleRecord = () => {
     if (playbackState === 'recording') {
@@ -39,6 +45,7 @@ export default function App() {
         currentTime={currentTime}
         isLoading={isLoading}
         monitorEnabled={monitorEnabled}
+        sessionCode={sessionCode}
         onPlay={play}
         onPause={pause}
         onStop={stop}

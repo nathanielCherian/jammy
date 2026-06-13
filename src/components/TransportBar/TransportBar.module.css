@@ -156,6 +156,48 @@
   margin-left: 4px;
 }
 
+.spacer {
+  flex: 1;
+}
+
+.sessionBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  background: var(--bg-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.sessionBadge:hover {
+  border-color: var(--accent);
+  background: var(--bg-lighter);
+}
+
+.sessionLabel {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.sessionCode {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--text);
+}
+
+.sessionCopy {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
 .loadingLabel {
   font-size: 12px;
   color: var(--text-muted);

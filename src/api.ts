@@ -1,0 +1,27 @@
+import { Track } from './types';
+
+export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+
+export interface Session {
+  id: string;
+  code: string;
+  name: string | null;
+  createdAt: number;
+}
+
+export async function createSession(name?: string): Promise<Session> {
+  const res = await fetch(`${API_URL}/sessions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) throw new Error('Failed to create session');
+  return res.json();
+}
+
+export async function getSession(code: string): Promise<{ session: Session; tracks: Track[] }> {
+  const res = await fetch(`${API_URL}/sessions/${code.toUpperCase()}`);
+  if (res.status === 404) throw new Error('Session not found');
+  if (!res.ok) throw new Error('Failed to load session');
+  return res.json();
+}

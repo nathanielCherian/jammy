@@ -7,6 +7,7 @@ interface Props {
   currentTime: number;
   isLoading: boolean;
   monitorEnabled: boolean;
+  sessionCode: string;
   onPlay: () => void;
   onPause: () => void;
   onStop: () => void;
@@ -26,6 +27,7 @@ export function TransportBar({
   currentTime,
   isLoading,
   monitorEnabled,
+  sessionCode,
   onPlay,
   onPause,
   onStop,
@@ -122,7 +124,30 @@ export function TransportBar({
       {isRecording && monitorEnabled && (
         <span className={styles.headphoneHint}>Use headphones to prevent feedback</span>
       )}
+
+      <div className={styles.spacer} />
+
+      <SessionCodeBadge code={sessionCode} />
     </div>
+  );
+}
+
+function SessionCodeBadge({ code }: { code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  return (
+    <button className={styles.sessionBadge} onClick={handleCopy} title="Copy session link">
+      <span className={styles.sessionLabel}>SESSION</span>
+      <span className={styles.sessionCode}>{code}</span>
+      <span className={styles.sessionCopy}>{copied ? '✓' : <CopyIcon />}</span>
+    </button>
   );
 }
 
@@ -173,6 +198,15 @@ function MonitorOffIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
       <polygon points="2,5 6,5 10,2 10,14 6,11 2,11" />
       <line x1="12" y1="4" x2="15" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+      <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+      <path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
     </svg>
   );
 }
