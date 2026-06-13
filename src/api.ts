@@ -1,6 +1,8 @@
 import { Track } from './types';
 
-export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+// In dev, requests go to '' (same-origin, proxied by Vite to localhost:3001).
+// In production, set VITE_API_URL to the backend's public URL.
+export const API_URL = import.meta.env.VITE_API_URL ?? '';
 
 export interface Session {
   id: string;
