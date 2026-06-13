@@ -1,0 +1,35 @@
+# Jammy backend — systemd unit
+# Copy to /etc/systemd/system/jammy-backend.service
+# Then: systemctl daemon-reload && systemctl enable --now jammy-backend
+
+[Unit]
+Description=Jammy Backend API
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+
+WorkingDirectory=/opt/jammy/backend
+
+# Runtime environment
+Environment=NODE_ENV=production
+Environment=PORT=3001
+# Uncomment and set if uploads should live outside the repo:
+# Environment=UPLOADS_DIR=/var/data/jammy/uploads
+# Uncomment if calling the API from a different origin than the UI:
+# Environment=CORS_ORIGIN=https://yourdomain.com
+
+ExecStart=/usr/bin/node dist/index.js
+
+# Restart on crash; give it a moment before retrying
+Restart=on-failure
+RestartSec=5
+
+# Write logs to the journal (view with: journalctl -u jammy-backend -f)
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

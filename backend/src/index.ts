@@ -10,13 +10,16 @@ import { setupSocket } from './socket';
 import { setIo } from './io';
 
 const PORT = parseInt(process.env.PORT ?? '3001', 10);
-const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
+const UPLOADS_DIR = process.env.UPLOADS_DIR ?? path.join(__dirname, '..', 'uploads');
+const CORS_ORIGINS: string[] = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
+  : ['http://localhost:5173', 'http://localhost:4173'];
 
 async function start() {
   const app = Fastify({ logger: { level: 'info' } });
 
   await app.register(cors, {
-    origin: ['http://localhost:5173', 'http://localhost:4173'],
+    origin: CORS_ORIGINS,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   });
 
@@ -38,7 +41,7 @@ async function start() {
   // Attach Socket.IO to Fastify's underlying HTTP server after listen
   const io = new SocketIOServer(app.server, {
     cors: {
-      origin: ['http://localhost:5173', 'http://localhost:4173'],
+      origin: CORS_ORIGINS,
     },
   });
 
