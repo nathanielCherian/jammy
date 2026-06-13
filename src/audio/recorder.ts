@@ -14,15 +14,18 @@ export class Recorder {
 
   async requestPermission(): Promise<boolean> {
     try {
+      if (!navigator.mediaDevices) throw new Error('Microphone access requires HTTPS');
       this.stream = await navigator.mediaDevices.getUserMedia(CONSTRAINTS);
       return true;
-    } catch {
+    } catch (err) {
+      console.error('Microphone permission denied:', err);
       return false;
     }
   }
 
   async start(): Promise<void> {
     if (!this.stream) {
+      if (!navigator.mediaDevices) throw new Error('Microphone access requires HTTPS');
       this.stream = await navigator.mediaDevices.getUserMedia(CONSTRAINTS);
     }
     this.chunks = [];

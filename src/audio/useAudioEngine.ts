@@ -158,12 +158,20 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
   }, []);
 
   const startRecording = useCallback(async () => {
-    // Start playback if not already playing
     if (playbackState === 'stopped' || playbackState === 'paused') {
       await engineRef.current.play(tracksRef.current);
     }
     recordStartTimeRef.current = engineRef.current.getCurrentTime();
-    await recorderRef.current.start();
+    try {
+      await recorderRef.current.start();
+    } catch (err) {
+      engineRef.current.stop();
+      setPlaybackState('stopped');
+      setCurrentTime(0);
+      const msg = err instanceof Error ? err.message : 'Microphone access failed';
+      alert(`Recording failed: ${msg}`);
+      return;
+    }
     setPlaybackState('recording');
   }, [playbackState]);
 
