@@ -10,9 +10,11 @@ interface Props {
   onCommit: (id: string) => void;
   onVolumeChange: (id: string, volume: number) => void;
   onToggleEnabled: (id: string) => void;
+  onUploadRecording: (id: string) => void;
+  onDiscardRecording: (id: string) => void;
 }
 
-export function TrackLane({ track, clipDuration, audioBuffer, onStartTimeChange, onCommit, onVolumeChange, onToggleEnabled }: Props) {
+export function TrackLane({ track, clipDuration, audioBuffer, onStartTimeChange, onCommit, onVolumeChange, onToggleEnabled, onUploadRecording, onDiscardRecording }: Props) {
   return (
     <div className={`${styles.lane} ${!track.enabled ? styles.laneDisabled : ''}`}>
       <div className={styles.laneLabel}>
@@ -41,6 +43,8 @@ export function TrackLane({ track, clipDuration, audioBuffer, onStartTimeChange,
           audioBuffer={audioBuffer}
           onStartTimeChange={onStartTimeChange}
           onCommit={onCommit}
+          onUpload={onUploadRecording}
+          onDiscard={onDiscardRecording}
         />
       </div>
     </div>

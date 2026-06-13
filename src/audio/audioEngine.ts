@@ -46,6 +46,18 @@ export class AudioEngine {
     this.buffers.set(id, buffer);
   }
 
+  renameBuffer(oldId: string, newId: string): void {
+    const buf = this.buffers.get(oldId);
+    if (buf) {
+      this.buffers.delete(oldId);
+      this.buffers.set(newId, buf);
+    }
+  }
+
+  removeBuffer(id: string): void {
+    this.buffers.delete(id);
+  }
+
   getAudioContext(): AudioContext {
     return this.ensureContext();
   }

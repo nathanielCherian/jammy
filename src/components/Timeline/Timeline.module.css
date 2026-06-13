@@ -224,3 +224,48 @@
   text-overflow: ellipsis;
   pointer-events: none;
 }
+
+/* ── Pending clip (recorded, not yet uploaded) ── */
+.clipPending {
+  border-style: dashed !important;
+  border-width: 2px !important;
+  opacity: 1;
+}
+
+.pendingActions {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  z-index: 20;
+}
+
+.pendingBtn {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+.pendingUpload {
+  background: rgba(76, 175, 80, 0.9);
+  color: #fff;
+}
+
+.pendingUpload:hover {
+  background: rgba(102, 187, 106, 1);
+}
+
+.pendingDiscard {
+  background: rgba(229, 57, 53, 0.9);
+  color: #fff;
+}
+
+.pendingDiscard:hover {
+  background: rgba(239, 83, 80, 1);
+}

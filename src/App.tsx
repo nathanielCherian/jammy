@@ -28,7 +28,9 @@ export default function App({ initialTracks, sessionCode }: Props) {
     setTrackVolume,
     toggleTrackEnabled,
     toggleMonitor,
-  } = useAudioEngine(initialTracks);
+    uploadRecording,
+    discardRecording,
+  } = useAudioEngine(initialTracks, sessionCode);
 
   const handleRecord = () => {
     if (playbackState === 'recording') {
@@ -61,6 +63,8 @@ export default function App({ initialTracks, sessionCode }: Props) {
         onCommitStartTime={commitTrackStartTime}
         onTrackVolumeChange={setTrackVolume}
         onToggleTrackEnabled={toggleTrackEnabled}
+        onUploadRecording={uploadRecording}
+        onDiscardRecording={discardRecording}
       />
     </div>
   );

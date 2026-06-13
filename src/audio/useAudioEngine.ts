@@ -3,10 +3,11 @@ import { Track, PlaybackState } from '../types';
 import { SONG_DURATION } from '../constants';
 import { AudioEngine } from './audioEngine';
 import { Recorder } from './recorder';
+import { uploadTrack } from '../api';
 
 const REC_COLORS = ['#ff7043', '#ab47bc', '#26a69a', '#ef5350', '#7e57c2', '#26c6da'];
 
-export function useAudioEngine(initialTracks: Track[] = []) {
+export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
   const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [playbackState, setPlaybackState] = useState<PlaybackState>('stopped');
   const [currentTime, setCurrentTime] = useState(0);
@@ -23,6 +24,7 @@ export function useAudioEngine(initialTracks: Track[] = []) {
 
   const recordStartTimeRef = useRef(0);
   const recordingCounterRef = useRef(0);
+  const pendingBlobsRef = useRef<Map<string, Blob>>(new Map());
 
   useEffect(() => {
     if (initialTracks.length === 0) {
@@ -111,8 +113,10 @@ export function useAudioEngine(initialTracks: Track[] = []) {
         volume: 0.85,
         color,
         enabled: true,
+        pending: true,
       };
 
+      pendingBlobsRef.current.set(id, blob);
       engineRef.current.addBuffer(id, audioBuffer);
 
       setTracks((prev) => [...prev, newTrack]);
@@ -159,6 +163,52 @@ export function useAudioEngine(initialTracks: Track[] = []) {
     });
   }, []);
 
+  const uploadRecording = useCallback(async (id: string) => {
+    const blob = pendingBlobsRef.current.get(id);
+    const track = tracksRef.current.find((t) => t.id === id);
+    if (!blob || !track || !sessionCode) return;
+
+    try {
+      const uploaded = await uploadTrack(sessionCode, blob, {
+        name: track.name,
+        startTime: track.startTime,
+        volume: track.volume,
+        color: track.color,
+      });
+
+      // Swap the temp local track for the server-confirmed one
+      pendingBlobsRef.current.delete(id);
+      engineRef.current.renameBuffer(id, uploaded.id);
+      setTracks((prev) =>
+        prev.map((t) => (t.id === id ? { ...uploaded, enabled: t.enabled } : t))
+      );
+      setClipDurations((prev) => {
+        const dur = prev.get(id);
+        const next = new Map(prev);
+        next.delete(id);
+        if (dur !== undefined) next.set(uploaded.id, dur);
+        return next;
+      });
+      setAudioBuffers((prev) => {
+        const buf = prev.get(id);
+        const next = new Map(prev);
+        next.delete(id);
+        if (buf) next.set(uploaded.id, buf);
+        return next;
+      });
+    } catch (err) {
+      console.warn('Upload failed:', err);
+    }
+  }, [sessionCode]);
+
+  const discardRecording = useCallback((id: string) => {
+    pendingBlobsRef.current.delete(id);
+    engineRef.current.removeBuffer(id);
+    setTracks((prev) => prev.filter((t) => t.id !== id));
+    setClipDurations((prev) => { const m = new Map(prev); m.delete(id); return m; });
+    setAudioBuffers((prev) => { const m = new Map(prev); m.delete(id); return m; });
+  }, []);
+
   return {
     tracks,
     clipDurations,
@@ -177,5 +227,7 @@ export function useAudioEngine(initialTracks: Track[] = []) {
     setTrackVolume,
     toggleTrackEnabled,
     toggleMonitor,
+    uploadRecording,
+    discardRecording,
   };
 }

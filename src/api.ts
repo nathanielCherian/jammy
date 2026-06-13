@@ -27,3 +27,20 @@ export async function getSession(code: string): Promise<{ session: Session; trac
   if (!res.ok) throw new Error('Failed to load session');
   return res.json();
 }
+
+export async function uploadTrack(
+  code: string,
+  blob: Blob,
+  meta: Pick<Track, 'name' | 'startTime' | 'volume' | 'color'>
+): Promise<Track> {
+  const form = new FormData();
+  form.append('file', blob, 'recording.webm');
+  form.append('metadata', JSON.stringify(meta));
+  const res = await fetch(`${API_URL}/sessions/${code.toUpperCase()}/tracks`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) throw new Error('Upload failed');
+  const { track } = await res.json();
+  return { ...track, audioUrl: API_URL + track.audioUrl };
+}

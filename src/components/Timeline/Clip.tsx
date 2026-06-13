@@ -12,9 +12,11 @@ interface Props {
   audioBuffer?: AudioBuffer;
   onStartTimeChange: (id: string, newStart: number) => void;
   onCommit: (id: string) => void;
+  onUpload: (id: string) => void;
+  onDiscard: (id: string) => void;
 }
 
-export function Clip({ track, clipDuration, audioBuffer, onStartTimeChange, onCommit }: Props) {
+export function Clip({ track, clipDuration, audioBuffer, onStartTimeChange, onCommit, onUpload, onDiscard }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
   const originalStart = useRef(0);
@@ -51,7 +53,7 @@ export function Clip({ track, clipDuration, audioBuffer, onStartTimeChange, onCo
 
   return (
     <div
-      className={`${styles.clip} ${isDragging ? styles.clipDragging : ''}`}
+      className={`${styles.clip} ${isDragging ? styles.clipDragging : ''} ${track.pending ? styles.clipPending : ''}`}
       style={{
         left,
         width,
@@ -69,6 +71,24 @@ export function Clip({ track, clipDuration, audioBuffer, onStartTimeChange, onCo
         height={CLIP_HEIGHT}
       />
       <span className={styles.clipLabel}>{track.name}</span>
+      {track.pending && (
+        <div className={styles.pendingActions} onPointerDown={(e) => e.stopPropagation()}>
+          <button
+            className={`${styles.pendingBtn} ${styles.pendingUpload}`}
+            onClick={(e) => { e.stopPropagation(); onUpload(track.id); }}
+            title="Upload recording"
+          >
+            ↑ Upload
+          </button>
+          <button
+            className={`${styles.pendingBtn} ${styles.pendingDiscard}`}
+            onClick={(e) => { e.stopPropagation(); onDiscard(track.id); }}
+            title="Discard recording"
+          >
+            ✕ Discard
+          </button>
+        </div>
+      )}
     </div>
   );
 }
