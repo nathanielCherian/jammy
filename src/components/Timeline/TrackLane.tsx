@@ -9,12 +9,13 @@ interface Props {
   onStartTimeChange: (id: string, newStart: number) => void;
   onCommit: (id: string) => void;
   onVolumeChange: (id: string, volume: number) => void;
+  onCommitVolume: (id: string) => void;
   onToggleEnabled: (id: string) => void;
   onUploadRecording: (id: string) => void;
   onDiscardRecording: (id: string) => void;
 }
 
-export function TrackLane({ track, clipDuration, audioBuffer, onStartTimeChange, onCommit, onVolumeChange, onToggleEnabled, onUploadRecording, onDiscardRecording }: Props) {
+export function TrackLane({ track, clipDuration, audioBuffer, onStartTimeChange, onCommit, onVolumeChange, onCommitVolume, onToggleEnabled, onUploadRecording, onDiscardRecording }: Props) {
   return (
     <div className={`${styles.lane} ${!track.enabled ? styles.laneDisabled : ''}`}>
       <div className={styles.laneLabel}>
@@ -33,6 +34,7 @@ export function TrackLane({ track, clipDuration, audioBuffer, onStartTimeChange,
           value={track.volume}
           className={styles.volumeSlider}
           onChange={(e) => onVolumeChange(track.id, parseFloat(e.target.value))}
+          onPointerUp={() => onCommitVolume(track.id)}
           title={`Volume: ${Math.round(track.volume * 100)}%`}
         />
       </div>

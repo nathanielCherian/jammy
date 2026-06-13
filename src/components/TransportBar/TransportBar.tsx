@@ -8,6 +8,7 @@ interface Props {
   isLoading: boolean;
   monitorEnabled: boolean;
   sessionCode: string;
+  onlineCount: number;
   onPlay: () => void;
   onPause: () => void;
   onStop: () => void;
@@ -28,6 +29,7 @@ export function TransportBar({
   isLoading,
   monitorEnabled,
   sessionCode,
+  onlineCount,
   onPlay,
   onPause,
   onStop,
@@ -126,6 +128,13 @@ export function TransportBar({
       )}
 
       <div className={styles.spacer} />
+
+      {onlineCount > 1 && (
+        <span className={styles.presencePill}>
+          <span className={styles.presenceDot} />
+          {onlineCount} online
+        </span>
+      )}
 
       <SessionCodeBadge code={sessionCode} />
     </div>

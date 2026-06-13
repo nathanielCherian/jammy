@@ -160,6 +160,35 @@
   flex: 1;
 }
 
+.presencePill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  background: rgba(76, 175, 80, 0.12);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #81c784;
+  white-space: nowrap;
+}
+
+.presenceDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4caf50;
+  flex-shrink: 0;
+  animation: presencePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes presencePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
 .sessionBadge {
   display: flex;
   align-items: center;

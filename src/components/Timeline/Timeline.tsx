@@ -13,6 +13,7 @@ interface Props {
   onTrackStartTimeChange: (id: string, newStart: number) => void;
   onCommitStartTime: (id: string) => void;
   onTrackVolumeChange: (id: string, volume: number) => void;
+  onCommitTrackVolume: (id: string) => void;
   onToggleTrackEnabled: (id: string) => void;
   onUploadRecording: (id: string) => void;
   onDiscardRecording: (id: string) => void;
@@ -28,6 +29,7 @@ export function Timeline({
   onTrackStartTimeChange,
   onCommitStartTime,
   onTrackVolumeChange,
+  onCommitTrackVolume,
   onToggleTrackEnabled,
   onUploadRecording,
   onDiscardRecording,
@@ -47,6 +49,7 @@ export function Timeline({
               onStartTimeChange={onTrackStartTimeChange}
               onCommit={onCommitStartTime}
               onVolumeChange={onTrackVolumeChange}
+              onCommitVolume={onCommitTrackVolume}
               onToggleEnabled={onToggleTrackEnabled}
               onUploadRecording={onUploadRecording}
               onDiscardRecording={onDiscardRecording}
