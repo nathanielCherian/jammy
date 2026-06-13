@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PlaybackState } from '../../types';
 import styles from './TransportBar.module.css';
 
@@ -36,6 +37,7 @@ export function TransportBar({
   onRecord,
   onToggleMonitor,
 }: Props) {
+  const navigate = useNavigate();
   const isPlaying = playbackState === 'playing';
   const isRecording = playbackState === 'recording';
   const isPaused = playbackState === 'paused';
@@ -60,7 +62,7 @@ export function TransportBar({
 
   return (
     <div className={styles.bar}>
-      <span className={styles.logo}>jammy</span>
+      <span className={styles.logo} onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>jammy</span>
 
       <div className={styles.controls}>
         <button
