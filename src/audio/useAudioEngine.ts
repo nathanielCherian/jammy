@@ -272,7 +272,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
         startTime: track.startTime,
         volume: track.volume,
         color: track.color,
-      });
+      }, socketRef.current?.id);
 
       // Swap the temp local track for the server-confirmed one
       pendingBlobsRef.current.delete(id);

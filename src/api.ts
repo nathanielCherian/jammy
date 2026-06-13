@@ -46,11 +46,12 @@ export async function patchTrack(
 export async function uploadTrack(
   code: string,
   blob: Blob,
-  meta: Pick<Track, 'name' | 'startTime' | 'volume' | 'color'>
+  meta: Pick<Track, 'name' | 'startTime' | 'volume' | 'color'>,
+  socketId?: string
 ): Promise<Track> {
   const form = new FormData();
   form.append('file', blob, 'recording.webm');
-  form.append('metadata', JSON.stringify(meta));
+  form.append('metadata', JSON.stringify({ ...meta, socketId }));
   const res = await fetch(`${API_URL}/sessions/${code.toUpperCase()}/tracks`, {
     method: 'POST',
     body: form,

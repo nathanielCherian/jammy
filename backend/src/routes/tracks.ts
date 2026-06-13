@@ -53,7 +53,10 @@ export async function trackRoutes(app: FastifyInstance) {
       metadata.enabled !== false
     );
 
-    getIo().to(session.id).emit('track:added', { track });
+    const socketId = (metadata as { socketId?: string }).socketId;
+    const io = getIo();
+    const target = socketId ? io.to(session.id).except(socketId) : io.to(session.id);
+    target.emit('track:added', { track });
     reply.status(201).send({ track });
   });
 
