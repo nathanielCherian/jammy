@@ -1,0 +1,6 @@
+node_modules/
+dist/
+jammy.db
+jammy.db-shm
+jammy.db-wal
+uploads/
