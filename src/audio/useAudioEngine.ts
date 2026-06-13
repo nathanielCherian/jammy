@@ -3,7 +3,7 @@ import { Track, PlaybackState } from '../types';
 import { SONG_DURATION } from '../constants';
 import { AudioEngine } from './audioEngine';
 import { Recorder } from './recorder';
-import { uploadTrack } from '../api';
+import { uploadTrack, patchTrack } from '../api';
 
 const REC_COLORS = ['#ff7043', '#ab47bc', '#26a69a', '#ef5350', '#7e57c2', '#26c6da'];
 
@@ -132,12 +132,18 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
   }, []);
 
   const commitTrackStartTime = useCallback(
-    async (_id: string) => {
+    async (id: string) => {
+      const track = tracksRef.current.find((t) => t.id === id);
+      if (track && !track.pending && sessionCode) {
+        patchTrack(sessionCode, id, { startTime: track.startTime }).catch((err) =>
+          console.warn('Failed to save track position:', err)
+        );
+      }
       if (playbackState === 'playing') {
         await engineRef.current.play(tracksRef.current);
       }
     },
-    [playbackState]
+    [playbackState, sessionCode]
   );
 
   const setTrackVolume = useCallback((id: string, volume: number) => {

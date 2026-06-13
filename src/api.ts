@@ -28,6 +28,21 @@ export async function getSession(code: string): Promise<{ session: Session; trac
   return res.json();
 }
 
+export async function patchTrack(
+  code: string,
+  trackId: string,
+  updates: Partial<Pick<Track, 'startTime' | 'volume' | 'enabled' | 'name' | 'color'>>
+): Promise<Track> {
+  const res = await fetch(`${API_URL}/sessions/${code.toUpperCase()}/tracks/${trackId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  if (!res.ok) throw new Error('Update failed');
+  const { track } = await res.json();
+  return track;
+}
+
 export async function uploadTrack(
   code: string,
   blob: Blob,
