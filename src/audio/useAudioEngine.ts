@@ -123,7 +123,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
           const end = track.startTime + (clipDurationsRef.current.get(track.id) ?? 0);
           return end > max ? end : max;
         }, 0) || SONG_DURATION;
-        if (t >= endTime) {
+        if (playbackStateRef.current !== 'recording' && t >= endTime) {
           engineRef.current.stop();
           setPlaybackState('stopped');
           setCurrentTime(0);

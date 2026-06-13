@@ -49,8 +49,15 @@ export function Clip({ track, clipDuration, audioBuffer, isLocked, onStartTimeCh
   };
 
   const handlePointerUp = () => {
+    if (!isDragging) return;
     setIsDragging(false);
     onCommit(track.id);
+  };
+
+  const handlePointerCancel = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    onStartTimeChange(track.id, originalStart.current);
   };
 
   return (
@@ -65,6 +72,7 @@ export function Clip({ track, clipDuration, audioBuffer, isLocked, onStartTimeCh
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
     >
       <canvas
         ref={canvasRef}

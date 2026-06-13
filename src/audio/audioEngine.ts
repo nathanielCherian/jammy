@@ -1,5 +1,10 @@
 import { Track } from '../types';
 
+// Minimal silent WAV: unlocks iOS audio session so Web Audio routes through
+// the main speaker rather than the phone earpiece.
+const SILENT_WAV =
+  'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
@@ -8,6 +13,15 @@ export class AudioEngine {
   private sourceNodes: AudioBufferSourceNode[] = [];
   private startedAtCtxTime = 0;
   private playheadOffset = 0;
+  private static iosUnlocked = false;
+
+  private static unlockiOSSpeaker(): void {
+    if (AudioEngine.iosUnlocked) return;
+    AudioEngine.iosUnlocked = true;
+    const el = new Audio(SILENT_WAV);
+    el.setAttribute('playsinline', '');
+    el.play().catch(() => {});
+  }
 
   private ensureContext(): AudioContext {
     if (!this.ctx) {
@@ -124,6 +138,7 @@ export class AudioEngine {
   }
 
   async play(tracks: Track[]): Promise<void> {
+    AudioEngine.unlockiOSSpeaker();
     const ctx = this.ensureContext();
     if (ctx.state === 'suspended') {
       await ctx.resume();

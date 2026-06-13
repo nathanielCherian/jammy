@@ -46,6 +46,7 @@ export function TimelineRuler({ onSeek }: Props) {
       className={`${styles.ruler} ${styles.rulerInteractive}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
+      onPointerCancel={() => {}}
     >
       {ticks}
     </div>
