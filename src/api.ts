@@ -43,6 +43,20 @@ export async function patchTrack(
   return track;
 }
 
+export async function deleteTrack(
+  code: string,
+  trackId: string,
+  socketId?: string
+): Promise<void> {
+  const headers: HeadersInit = {};
+  if (socketId) headers['X-Socket-Id'] = socketId;
+  const res = await fetch(
+    `${API_URL}/sessions/${code.toUpperCase()}/tracks/${trackId}`,
+    { method: 'DELETE', headers }
+  );
+  if (!res.ok && res.status !== 404) throw new Error('Delete failed');
+}
+
 export async function uploadTrack(
   code: string,
   blob: Blob,

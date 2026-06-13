@@ -14,9 +14,10 @@ interface Props {
   onToggleEnabled: (id: string) => void;
   onUploadRecording: (id: string) => void;
   onDiscardRecording: (id: string) => void;
+  onDeleteTrack: (id: string) => void;
 }
 
-export function TrackLane({ track, clipDuration, audioBuffer, isLocked, onStartTimeChange, onCommit, onVolumeChange, onCommitVolume, onToggleEnabled, onUploadRecording, onDiscardRecording }: Props) {
+export function TrackLane({ track, clipDuration, audioBuffer, isLocked, onStartTimeChange, onCommit, onVolumeChange, onCommitVolume, onToggleEnabled, onUploadRecording, onDiscardRecording, onDeleteTrack }: Props) {
   return (
     <div className={`${styles.lane} ${!track.enabled ? styles.laneDisabled : ''}`}>
       <div className={styles.laneLabel}>
@@ -27,6 +28,15 @@ export function TrackLane({ track, clipDuration, audioBuffer, isLocked, onStartT
           style={{ '--track-color': track.color } as React.CSSProperties}
         />
         <span className={styles.trackName}>{track.name}</span>
+        {!track.pending && (
+          <button
+            className={styles.deleteTrackBtn}
+            onClick={() => onDeleteTrack(track.id)}
+            title="Delete track"
+          >
+            ×
+          </button>
+        )}
         <input
           type="range"
           min={0}

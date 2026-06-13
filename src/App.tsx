@@ -30,6 +30,7 @@ export default function App({ initialTracks, sessionCode }: Props) {
     toggleMonitor,
     uploadRecording,
     discardRecording,
+    deleteTrack,
     commitTrackVolume,
     seek,
     onlineCount,
@@ -74,6 +75,7 @@ export default function App({ initialTracks, sessionCode }: Props) {
         onToggleTrackEnabled={toggleTrackEnabled}
         onUploadRecording={uploadRecording}
         onDiscardRecording={discardRecording}
+        onDeleteTrack={deleteTrack}
       />
     </div>
   );

@@ -19,6 +19,7 @@ interface Props {
   onToggleTrackEnabled: (id: string) => void;
   onUploadRecording: (id: string) => void;
   onDiscardRecording: (id: string) => void;
+  onDeleteTrack: (id: string) => void;
 }
 
 const TOTAL_WIDTH = LABEL_WIDTH + SONG_DURATION * PIXELS_PER_SECOND + 40;
@@ -37,6 +38,7 @@ export function Timeline({
   onToggleTrackEnabled,
   onUploadRecording,
   onDiscardRecording,
+  onDeleteTrack,
 }: Props) {
   return (
     <div className={styles.timelineScroll}>
@@ -58,6 +60,7 @@ export function Timeline({
               onToggleEnabled={onToggleTrackEnabled}
               onUploadRecording={onUploadRecording}
               onDiscardRecording={onDiscardRecording}
+              onDeleteTrack={onDeleteTrack}
             />
           ))}
         </div>

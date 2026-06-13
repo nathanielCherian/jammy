@@ -4,7 +4,7 @@ import { Track, PlaybackState } from '../types';
 import { SONG_DURATION } from '../constants';
 import { AudioEngine } from './audioEngine';
 import { Recorder } from './recorder';
-import { API_URL, uploadTrack } from '../api';
+import { API_URL, uploadTrack, deleteTrack as deleteTrackApi } from '../api';
 
 const REC_COLORS = ['#ff7043', '#ab47bc', '#26a69a', '#ef5350', '#7e57c2', '#26c6da'];
 
@@ -169,7 +169,9 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
 
   const stopRecording = useCallback(async () => {
     const blob = await recorderRef.current.stop();
-    setPlaybackState('playing');
+    engineRef.current.stop();
+    setPlaybackState('stopped');
+    setCurrentTime(0);
 
     try {
       const ctx = engineRef.current.getAudioContext();
@@ -299,6 +301,21 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     }
   }, [sessionCode]);
 
+  const deleteTrack = useCallback(async (id: string) => {
+    const track = tracksRef.current.find((t) => t.id === id);
+    if (!track) return;
+    pendingBlobsRef.current.delete(id);
+    engineRef.current.removeBuffer(id);
+    setTracks((prev) => prev.filter((t) => t.id !== id));
+    setClipDurations((prev) => { const m = new Map(prev); m.delete(id); return m; });
+    setAudioBuffers((prev) => { const m = new Map(prev); m.delete(id); return m; });
+    if (!track.pending && sessionCode) {
+      deleteTrackApi(sessionCode, id, socketRef.current?.id).catch((err) =>
+        console.warn('Delete failed:', err)
+      );
+    }
+  }, [sessionCode]);
+
   const discardRecording = useCallback((id: string) => {
     pendingBlobsRef.current.delete(id);
     engineRef.current.removeBuffer(id);
@@ -327,6 +344,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     toggleMonitor,
     uploadRecording,
     discardRecording,
+    deleteTrack,
     commitTrackVolume,
     seek,
     onlineCount,

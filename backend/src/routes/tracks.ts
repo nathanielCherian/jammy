@@ -85,6 +85,10 @@ export async function trackRoutes(app: FastifyInstance) {
       const filePath = path.join(UPLOADS_DIR, session.id, `${req.params.trackId}.webm`);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
+      const socketId = req.headers['x-socket-id'] as string | undefined;
+      const io = getIo();
+      const target = socketId ? io.to(session.id).except(socketId) : io.to(session.id);
+      target.emit('track:deleted', { trackId: req.params.trackId });
       reply.status(204).send();
     }
   );
