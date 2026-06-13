@@ -31,7 +31,11 @@ export function TrackLane({ track, clipDuration, audioBuffer, isLocked, onStartT
         {!track.pending && (
           <button
             className={styles.deleteTrackBtn}
-            onClick={() => onDeleteTrack(track.id)}
+            onClick={() => {
+              if (window.confirm(`Delete "${track.name}"? This cannot be undone.`)) {
+                onDeleteTrack(track.id);
+              }
+            }}
             title="Delete track"
           >
             ×
