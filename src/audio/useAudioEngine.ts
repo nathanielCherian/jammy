@@ -26,6 +26,14 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
   const [onlineCount, setOnlineCount] = useState(1);
   const socketRef = useRef<Socket | null>(null);
 
+  const clipDurationsRef = useRef(clipDurations);
+  clipDurationsRef.current = clipDurations;
+
+  const playbackStateRef = useRef(playbackState);
+  playbackStateRef.current = playbackState;
+
+  const pendingSocketUpdatesRef = useRef<Array<() => void>>([]);
+
   const recordStartTimeRef = useRef(0);
   const recordingCounterRef = useRef(0);
   const pendingBlobsRef = useRef<Map<string, Blob>>(new Map());
@@ -62,32 +70,46 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     socket.on('user:joined',   ({ onlineCount: n }: { onlineCount: number }) => setOnlineCount(n));
     socket.on('user:left',     ({ onlineCount: n }: { onlineCount: number }) => setOnlineCount(n));
 
-    socket.on('track:updated', ({ trackId, changes }: { trackId: string; changes: Partial<Track> }) => {
-      setTracks((prev) => prev.map((t) => (t.id === trackId ? { ...t, ...changes } : t)));
-      if (changes.volume !== undefined) engineRef.current.setVolume(trackId, changes.volume);
-      if (changes.enabled !== undefined) {
-        const vol = tracksRef.current.find((t) => t.id === trackId)?.volume ?? 1;
-        engineRef.current.setEnabled(trackId, changes.enabled, vol);
+    const enqueue = (fn: () => void) => {
+      if (playbackStateRef.current === 'playing' || playbackStateRef.current === 'recording') {
+        pendingSocketUpdatesRef.current.push(fn);
+      } else {
+        fn();
       }
+    };
+
+    socket.on('track:updated', ({ trackId, changes }: { trackId: string; changes: Partial<Track> }) => {
+      enqueue(() => {
+        setTracks((prev) => prev.map((t) => (t.id === trackId ? { ...t, ...changes } : t)));
+        if (changes.volume !== undefined) engineRef.current.setVolume(trackId, changes.volume);
+        if (changes.enabled !== undefined) {
+          const vol = tracksRef.current.find((t) => t.id === trackId)?.volume ?? 1;
+          engineRef.current.setEnabled(trackId, changes.enabled, vol);
+        }
+      });
     });
 
     socket.on('track:added', ({ track }: { track: Track }) => {
       if (tracksRef.current.find((t) => t.id === track.id)) return;
       const resolved = { ...track, audioUrl: API_URL + track.audioUrl };
-      engineRef.current.loadBuffers([resolved]).then(() => {
-        const dur = engineRef.current.getBufferDuration(resolved.id);
-        const buf = engineRef.current.getBuffer(resolved.id);
-        setTracks((prev) => [...prev, resolved]);
-        setClipDurations((prev) => new Map(prev).set(resolved.id, dur));
-        if (buf) setAudioBuffers((prev) => new Map(prev).set(resolved.id, buf));
+      enqueue(() => {
+        engineRef.current.loadBuffers([resolved]).then(() => {
+          const dur = engineRef.current.getBufferDuration(resolved.id);
+          const buf = engineRef.current.getBuffer(resolved.id);
+          setTracks((prev) => [...prev, resolved]);
+          setClipDurations((prev) => new Map(prev).set(resolved.id, dur));
+          if (buf) setAudioBuffers((prev) => new Map(prev).set(resolved.id, buf));
+        });
       });
     });
 
     socket.on('track:deleted', ({ trackId }: { trackId: string }) => {
-      engineRef.current.removeBuffer(trackId);
-      setTracks((prev) => prev.filter((t) => t.id !== trackId));
-      setClipDurations((prev) => { const m = new Map(prev); m.delete(trackId); return m; });
-      setAudioBuffers((prev) => { const m = new Map(prev); m.delete(trackId); return m; });
+      enqueue(() => {
+        engineRef.current.removeBuffer(trackId);
+        setTracks((prev) => prev.filter((t) => t.id !== trackId));
+        setClipDurations((prev) => { const m = new Map(prev); m.delete(trackId); return m; });
+        setAudioBuffers((prev) => { const m = new Map(prev); m.delete(trackId); return m; });
+      });
     });
 
     return () => { socket.disconnect(); socketRef.current = null; };
@@ -97,10 +119,16 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     if (playbackState === 'playing' || playbackState === 'recording') {
       const tick = () => {
         const t = engineRef.current.getCurrentTime();
-        if (t >= SONG_DURATION) {
+        const endTime = tracksRef.current.reduce((max, track) => {
+          const end = track.startTime + (clipDurationsRef.current.get(track.id) ?? 0);
+          return end > max ? end : max;
+        }, 0) || SONG_DURATION;
+        if (t >= endTime) {
           engineRef.current.stop();
           setPlaybackState('stopped');
           setCurrentTime(0);
+          for (const fn of pendingSocketUpdatesRef.current) fn();
+          pendingSocketUpdatesRef.current = [];
           return;
         }
         setCurrentTime(t);
@@ -125,6 +153,8 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     engineRef.current.stop();
     setPlaybackState('stopped');
     setCurrentTime(0);
+    for (const fn of pendingSocketUpdatesRef.current) fn();
+    pendingSocketUpdatesRef.current = [];
   }, []);
 
   const startRecording = useCallback(async () => {
@@ -208,6 +238,15 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     );
   }, [sessionCode]);
 
+  const seek = useCallback(async (time: number) => {
+    if (playbackState === 'recording') return;
+    engineRef.current.seek(time);
+    setCurrentTime(time);
+    if (playbackState === 'playing') {
+      await engineRef.current.play(tracksRef.current);
+    }
+  }, [playbackState]);
+
   const commitTrackVolume = useCallback((id: string) => {
     const track = tracksRef.current.find((t) => t.id === id);
     if (track && !track.pending && sessionCode) {
@@ -289,6 +328,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     uploadRecording,
     discardRecording,
     commitTrackVolume,
+    seek,
     onlineCount,
   };
 }

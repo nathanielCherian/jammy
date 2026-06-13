@@ -10,6 +10,8 @@ interface Props {
   clipDurations: Map<string, number>;
   audioBuffers: Map<string, AudioBuffer>;
   currentTime: number;
+  isLocked: boolean;
+  onSeek: (time: number) => void;
   onTrackStartTimeChange: (id: string, newStart: number) => void;
   onCommitStartTime: (id: string) => void;
   onTrackVolumeChange: (id: string, volume: number) => void;
@@ -26,6 +28,8 @@ export function Timeline({
   clipDurations,
   audioBuffers,
   currentTime,
+  isLocked,
+  onSeek,
   onTrackStartTimeChange,
   onCommitStartTime,
   onTrackVolumeChange,
@@ -37,7 +41,7 @@ export function Timeline({
   return (
     <div className={styles.timelineScroll}>
       <div className={styles.timelineInner} style={{ width: TOTAL_WIDTH }}>
-        <TimelineRuler />
+        <TimelineRuler onSeek={onSeek} />
         <div className={styles.tracksArea}>
           <Playhead currentTime={currentTime} />
           {tracks.map((track) => (
@@ -48,6 +52,7 @@ export function Timeline({
               audioBuffer={audioBuffers.get(track.id)}
               onStartTimeChange={onTrackStartTimeChange}
               onCommit={onCommitStartTime}
+              isLocked={isLocked}
               onVolumeChange={onTrackVolumeChange}
               onCommitVolume={onCommitTrackVolume}
               onToggleEnabled={onToggleTrackEnabled}

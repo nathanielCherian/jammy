@@ -21,6 +21,10 @@
   user-select: none;
 }
 
+.rulerInteractive {
+  cursor: crosshair;
+}
+
 .majorTick {
   position: absolute;
   top: 0;
@@ -196,6 +200,10 @@
 
 .clip:hover {
   opacity: 1;
+}
+
+.clipLocked {
+  cursor: default;
 }
 
 .clipDragging {

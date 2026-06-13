@@ -46,6 +46,11 @@ export class AudioEngine {
     this.buffers.set(id, buffer);
   }
 
+  seek(time: number): void {
+    this.stopAllSources();
+    this.playheadOffset = Math.max(0, time);
+  }
+
   renameBuffer(oldId: string, newId: string): void {
     const buf = this.buffers.get(oldId);
     if (buf) {

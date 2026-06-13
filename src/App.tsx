@@ -31,8 +31,11 @@ export default function App({ initialTracks, sessionCode }: Props) {
     uploadRecording,
     discardRecording,
     commitTrackVolume,
+    seek,
     onlineCount,
   } = useAudioEngine(initialTracks, sessionCode);
+
+  const isLocked = playbackState === 'playing' || playbackState === 'recording';
 
   const handleRecord = () => {
     if (playbackState === 'recording') {
@@ -62,6 +65,8 @@ export default function App({ initialTracks, sessionCode }: Props) {
         clipDurations={clipDurations}
         audioBuffers={audioBuffers}
         currentTime={currentTime}
+        isLocked={isLocked}
+        onSeek={seek}
         onTrackStartTimeChange={setTrackStartTime}
         onCommitStartTime={commitTrackStartTime}
         onTrackVolumeChange={setTrackVolume}

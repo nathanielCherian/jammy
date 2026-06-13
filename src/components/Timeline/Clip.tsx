@@ -10,13 +10,14 @@ interface Props {
   track: Track;
   clipDuration: number;
   audioBuffer?: AudioBuffer;
+  isLocked: boolean;
   onStartTimeChange: (id: string, newStart: number) => void;
   onCommit: (id: string) => void;
   onUpload: (id: string) => void;
   onDiscard: (id: string) => void;
 }
 
-export function Clip({ track, clipDuration, audioBuffer, onStartTimeChange, onCommit, onUpload, onDiscard }: Props) {
+export function Clip({ track, clipDuration, audioBuffer, isLocked, onStartTimeChange, onCommit, onUpload, onDiscard }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
   const originalStart = useRef(0);
@@ -32,6 +33,7 @@ export function Clip({ track, clipDuration, audioBuffer, onStartTimeChange, onCo
   }, [audioBuffer, width]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isLocked) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     dragStartX.current = e.clientX;
     originalStart.current = track.startTime;
@@ -53,7 +55,7 @@ export function Clip({ track, clipDuration, audioBuffer, onStartTimeChange, onCo
 
   return (
     <div
-      className={`${styles.clip} ${isDragging ? styles.clipDragging : ''} ${track.pending ? styles.clipPending : ''}`}
+      className={`${styles.clip} ${isDragging ? styles.clipDragging : ''} ${track.pending ? styles.clipPending : ''} ${isLocked ? styles.clipLocked : ''}`}
       style={{
         left,
         width,
