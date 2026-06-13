@@ -85,7 +85,6 @@ Two fields required:
 `metadata` shape:
 ```json
 {
-  "id": "rec-abc123",
   "name": "Guitar",
   "startTime": 4.5,
   "volume": 0.9,
@@ -94,7 +93,7 @@ Two fields required:
 }
 ```
 
-Only `id` is required; all other fields have defaults.
+All fields are optional. The track `id` is assigned by the server (UUID) and returned in the response — do not send one.
 
 Response `201`:
 ```json

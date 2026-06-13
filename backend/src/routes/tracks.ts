@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import fs from 'fs';
 import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 import { getSessionByCode, createTrack, updateTrack, deleteTrack } from '../db';
 import { Track } from '../types';
 import { getIo } from '../io';
@@ -32,17 +33,17 @@ export async function trackRoutes(app: FastifyInstance) {
 
     if (metadataParseError) return reply.status(400).send({ error: 'Invalid metadata JSON' });
     if (!fileBuffer) return reply.status(400).send({ error: 'Missing file' });
-    if (!metadata.id) return reply.status(400).send({ error: 'Missing track id in metadata' });
 
+    const trackId = uuidv4();
     const sessionDir = path.join(UPLOADS_DIR, session.id);
     fs.mkdirSync(sessionDir, { recursive: true });
 
-    const filename = `${metadata.id}.webm`;
+    const filename = `${trackId}.webm`;
     fs.writeFileSync(path.join(sessionDir, filename), fileBuffer);
 
     const audioUrl = `/uploads/${session.id}/${filename}`;
     const track = createTrack(
-      metadata.id,
+      trackId,
       session.id,
       metadata.name ?? 'Track',
       audioUrl,
