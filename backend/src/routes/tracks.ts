@@ -1,8 +1,7 @@
 import { FastifyInstance } from 'fastify';
-import { MultipartFile } from '@fastify/multipart';
 import fs from 'fs';
 import path from 'path';
-import { getSessionByCode, createTrack, updateTrack, deleteTrack, getTracksBySession } from '../db';
+import { getSessionByCode, createTrack, updateTrack, deleteTrack } from '../db';
 import { Track } from '../types';
 import { getIo } from '../io';
 
@@ -13,45 +12,39 @@ export async function trackRoutes(app: FastifyInstance) {
     const session = getSessionByCode(req.params.code);
     if (!session) return reply.status(404).send({ error: 'Session not found' });
 
-    const parts = req.parts();
-    let filePart: MultipartFile | null = null;
+    // Consume ALL parts before any early return — exiting a for-await loop
+    // early without draining the stream causes the connection to hang.
+    let fileBuffer: Buffer | null = null;
     let metadata: Partial<Track> = {};
+    let metadataParseError = false;
 
-    for await (const part of parts) {
-      if (part.type === 'file' && part.fieldname === 'file') {
-        filePart = part;
-        // Buffer the file before processing metadata (parts are ordered: metadata first, file second)
-        // We need to drain the file part — collect it
-        const chunks: Buffer[] = [];
-        for await (const chunk of part.file) {
-          chunks.push(chunk);
-        }
-        (part as MultipartFile & { _buf: Buffer })._buf = Buffer.concat(chunks);
+    for await (const part of req.parts()) {
+      if (part.type === 'file') {
+        fileBuffer = await part.toBuffer();
       } else if (part.type === 'field' && part.fieldname === 'metadata') {
         try {
           metadata = JSON.parse(part.value as string);
         } catch {
-          return reply.status(400).send({ error: 'Invalid metadata JSON' });
+          metadataParseError = true;
         }
       }
     }
 
-    if (!filePart) return reply.status(400).send({ error: 'Missing file' });
+    if (metadataParseError) return reply.status(400).send({ error: 'Invalid metadata JSON' });
+    if (!fileBuffer) return reply.status(400).send({ error: 'Missing file' });
     if (!metadata.id) return reply.status(400).send({ error: 'Missing track id in metadata' });
 
     const sessionDir = path.join(UPLOADS_DIR, session.id);
     fs.mkdirSync(sessionDir, { recursive: true });
 
     const filename = `${metadata.id}.webm`;
-    const filePath = path.join(sessionDir, filename);
-    const buf = (filePart as MultipartFile & { _buf: Buffer })._buf;
-    fs.writeFileSync(filePath, buf);
+    fs.writeFileSync(path.join(sessionDir, filename), fileBuffer);
 
     const audioUrl = `/uploads/${session.id}/${filename}`;
     const track = createTrack(
       metadata.id,
       session.id,
-      metadata.name ?? `Track`,
+      metadata.name ?? 'Track',
       audioUrl,
       metadata.startTime ?? 0,
       metadata.volume ?? 0.8,
@@ -59,9 +52,7 @@ export async function trackRoutes(app: FastifyInstance) {
       metadata.enabled !== false
     );
 
-    // Notify all sockets in this session room
     getIo().to(session.id).emit('track:added', { track });
-
     reply.status(201).send({ track });
   });
 
