@@ -33,7 +33,7 @@ async function start() {
   await app.register(sessionRoutes);
   await app.register(trackRoutes);
 
-  await app.listen({ port: PORT, host: '0.0.0.0' });
+  await app.listen({ port: PORT, host: '::' }); // '::' binds both IPv4 and IPv6 on most systems
 
   // Attach Socket.IO to Fastify's underlying HTTP server after listen
   const io = new SocketIOServer(app.server, {
