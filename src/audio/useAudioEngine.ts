@@ -5,6 +5,7 @@ import { SONG_DURATION } from '../constants';
 import { AudioEngine } from './audioEngine';
 import { Recorder } from './recorder';
 import { API_URL, uploadTrack, deleteTrack as deleteTrackApi } from '../api';
+import { encodeToMp3 } from './mp3Encoder';
 
 const REC_COLORS = ['#ff7043', '#ab47bc', '#26a69a', '#ef5350', '#7e57c2', '#26c6da'];
 
@@ -16,6 +17,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
   const [clipDurations, setClipDurations] = useState<Map<string, number>>(new Map());
   const [audioBuffers, setAudioBuffers] = useState<Map<string, AudioBuffer>>(new Map());
   const [monitorEnabled, setMonitorEnabled] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
 
   const engineRef = useRef(new AudioEngine());
   const recorderRef = useRef(new Recorder());
@@ -271,6 +273,24 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     });
   }, []);
 
+  const exportMix = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      const audioBuffer = await engineRef.current.exportMix(tracksRef.current);
+      const blob = encodeToMp3(audioBuffer);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'jammy-mix.mp3';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+    } finally {
+      setIsExporting(false);
+    }
+  }, []);
+
   const uploadRecording = useCallback(async (id: string) => {
     const blob = pendingBlobsRef.current.get(id);
     const track = tracksRef.current.find((t) => t.id === id);
@@ -356,5 +376,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     commitTrackVolume,
     seek,
     onlineCount,
+    exportMix,
+    isExporting,
   };
 }

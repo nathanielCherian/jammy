@@ -34,6 +34,8 @@ export default function App({ initialTracks, sessionCode }: Props) {
     commitTrackVolume,
     seek,
     onlineCount,
+    exportMix,
+    isExporting,
   } = useAudioEngine(initialTracks, sessionCode);
 
   const isLocked = playbackState === 'playing' || playbackState === 'recording';
@@ -60,6 +62,8 @@ export default function App({ initialTracks, sessionCode }: Props) {
         onStop={stop}
         onRecord={handleRecord}
         onToggleMonitor={toggleMonitor}
+        onExportMp3={exportMix}
+        isExporting={isExporting}
       />
       <Timeline
         tracks={tracks}

@@ -245,3 +245,9 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.exportBtn:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: #81c784;
+  color: #81c784;
+}

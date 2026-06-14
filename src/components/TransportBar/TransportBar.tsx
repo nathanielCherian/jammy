@@ -15,6 +15,8 @@ interface Props {
   onStop: () => void;
   onRecord: () => void;
   onToggleMonitor: () => void;
+  onExportMp3: () => void;
+  isExporting: boolean;
 }
 
 function formatTime(seconds: number): string {
@@ -36,6 +38,8 @@ export function TransportBar({
   onStop,
   onRecord,
   onToggleMonitor,
+  onExportMp3,
+  isExporting,
 }: Props) {
   const navigate = useNavigate();
   const isPlaying = playbackState === 'playing';
@@ -131,6 +135,15 @@ export function TransportBar({
 
       <div className={styles.spacer} />
 
+      <button
+        className={`${styles.btn} ${styles.exportBtn}`}
+        onClick={onExportMp3}
+        disabled={isExporting || playbackState !== 'stopped' || isLoading}
+        title={isExporting ? 'Exporting…' : 'Download MP3'}
+      >
+        {isExporting ? <span className={styles.spinner} /> : <DownloadIcon />}
+      </button>
+
       {onlineCount > 1 && (
         <span className={styles.presencePill}>
           <span className={styles.presenceDot} />
@@ -218,6 +231,15 @@ function CopyIcon() {
     <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
       <rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.5" fill="none"/>
       <path d="M11 5V3.5A1.5 1.5 0 0 0 9.5 2h-6A1.5 1.5 0 0 0 2 3.5v6A1.5 1.5 0 0 0 3.5 11H5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+    </svg>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 2v8M5 7l3 3 3-3" />
+      <path d="M3 13h10" />
     </svg>
   );
 }

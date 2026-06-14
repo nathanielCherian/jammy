@@ -1,4 +1,5 @@
 import { Track } from '../types';
+import { SONG_DURATION } from '../constants';
 
 // Minimal silent WAV: unlocks iOS audio session so Web Audio routes through
 // the main speaker rather than the phone earpiece.
@@ -177,5 +178,36 @@ export class AudioEngine {
     if (!this.ctx) return 0;
     if (this.ctx.state === 'suspended') return this.playheadOffset;
     return this.playheadOffset + (this.ctx.currentTime - this.startedAtCtxTime);
+  }
+
+  async exportMix(tracks: Track[]): Promise<AudioBuffer> {
+    const SAMPLE_RATE = 44100;
+    let totalDuration = 0;
+    for (const track of tracks) {
+      if (!track.enabled) continue;
+      const buffer = this.buffers.get(track.id);
+      if (!buffer) continue;
+      const end = track.startTime + buffer.duration;
+      if (end > totalDuration) totalDuration = end;
+    }
+    if (totalDuration <= 0) totalDuration = SONG_DURATION;
+
+    const offlineCtx = new OfflineAudioContext(2, Math.ceil(totalDuration * SAMPLE_RATE), SAMPLE_RATE);
+    const masterGain = offlineCtx.createGain();
+    masterGain.connect(offlineCtx.destination);
+
+    for (const track of tracks) {
+      const buffer = this.buffers.get(track.id);
+      if (!buffer) continue;
+      const gainNode = offlineCtx.createGain();
+      gainNode.gain.value = track.enabled ? track.volume : 0;
+      gainNode.connect(masterGain);
+      const source = offlineCtx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(gainNode);
+      source.start(track.startTime, 0);
+    }
+
+    return offlineCtx.startRendering();
   }
 }
