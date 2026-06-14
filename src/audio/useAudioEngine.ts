@@ -292,7 +292,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'jammy-mix.mp3';
+      a.download = sessionName ? `${sessionName} - jammy.mp3` : 'jammy-mix.mp3';
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
