@@ -9,6 +9,7 @@ interface Props {
   onStartTimeChange: (id: string, newStart: number) => void;
   onCommit: (id: string) => void;
   isLocked: boolean;
+  isSessionLocked: boolean;
   onVolumeChange: (id: string, volume: number) => void;
   onCommitVolume: (id: string) => void;
   onToggleEnabled: (id: string) => void;
@@ -17,18 +18,19 @@ interface Props {
   onDeleteTrack: (id: string) => void;
 }
 
-export function TrackLane({ track, clipDuration, audioBuffer, isLocked, onStartTimeChange, onCommit, onVolumeChange, onCommitVolume, onToggleEnabled, onUploadRecording, onDiscardRecording, onDeleteTrack }: Props) {
+export function TrackLane({ track, clipDuration, audioBuffer, isLocked, isSessionLocked, onStartTimeChange, onCommit, onVolumeChange, onCommitVolume, onToggleEnabled, onUploadRecording, onDiscardRecording, onDeleteTrack }: Props) {
   return (
     <div className={`${styles.lane} ${!track.enabled ? styles.laneDisabled : ''}`}>
       <div className={styles.laneLabel}>
         <button
           className={`${styles.enableToggle} ${track.enabled ? styles.enableToggleOn : styles.enableToggleOff}`}
           onClick={() => onToggleEnabled(track.id)}
-          title={track.enabled ? 'Disable track' : 'Enable track'}
+          disabled={isSessionLocked}
+          title={isSessionLocked ? 'Session is locked' : track.enabled ? 'Disable track' : 'Enable track'}
           style={{ '--track-color': track.color } as React.CSSProperties}
         />
         <span className={styles.trackName}>{track.name}</span>
-        {!track.pending && (
+        {!track.pending && !isSessionLocked && (
           <button
             className={styles.deleteTrackBtn}
             onClick={() => {
@@ -50,7 +52,8 @@ export function TrackLane({ track, clipDuration, audioBuffer, isLocked, onStartT
           className={styles.volumeSlider}
           onChange={(e) => onVolumeChange(track.id, parseFloat(e.target.value))}
           onPointerUp={() => onCommitVolume(track.id)}
-          title={`Volume: ${Math.round(track.volume * 100)}%`}
+          disabled={isSessionLocked}
+          title={isSessionLocked ? 'Session is locked' : `Volume: ${Math.round(track.volume * 100)}%`}
         />
       </div>
       <div className={styles.laneClipArea}>
@@ -58,7 +61,7 @@ export function TrackLane({ track, clipDuration, audioBuffer, isLocked, onStartT
           track={track}
           clipDuration={clipDuration}
           audioBuffer={audioBuffer}
-          isLocked={isLocked}
+          isLocked={isLocked || isSessionLocked}
           onStartTimeChange={onStartTimeChange}
           onCommit={onCommit}
           onUpload={onUploadRecording}

@@ -9,7 +9,7 @@ import { encodeToMp3 } from './mp3Encoder';
 
 const REC_COLORS = ['#ff7043', '#ab47bc', '#26a69a', '#ef5350', '#7e57c2', '#26c6da'];
 
-export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', initialName: string | null = null) {
+export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', initialName: string | null = null, initialLocked = false) {
   const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [playbackState, setPlaybackState] = useState<PlaybackState>('stopped');
   const [currentTime, setCurrentTime] = useState(0);
@@ -19,6 +19,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   const [monitorEnabled, setMonitorEnabled] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [sessionName, setSessionName] = useState<string | null>(initialName);
+  const [sessionLocked] = useState(initialLocked);
 
   const engineRef = useRef(new AudioEngine());
   const recorderRef = useRef(new Recorder());
@@ -162,6 +163,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   }, []);
 
   const startRecording = useCallback(async () => {
+    if (sessionLocked) return;
     if (playbackState === 'stopped' || playbackState === 'paused') {
       await engineRef.current.play(tracksRef.current);
     }
@@ -217,11 +219,13 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   }, []);
 
   const setTrackStartTime = useCallback((id: string, newStart: number) => {
+    if (sessionLocked) return;
     setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, startTime: newStart } : t)));
-  }, []);
+  }, [sessionLocked]);
 
   const commitTrackStartTime = useCallback(
     async (id: string) => {
+      if (sessionLocked) return;
       const track = tracksRef.current.find((t) => t.id === id);
       if (track && !track.pending && sessionCode) {
         socketRef.current?.emit('track:update', { trackId: id, changes: { startTime: track.startTime } });
@@ -234,11 +238,13 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   );
 
   const setTrackVolume = useCallback((id: string, volume: number) => {
+    if (sessionLocked) return;
     setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, volume } : t)));
     engineRef.current.setVolume(id, volume);
-  }, []);
+  }, [sessionLocked]);
 
   const toggleTrackEnabled = useCallback((id: string) => {
+    if (sessionLocked) return;
     setTracks((prev) =>
       prev.map((t) => {
         if (t.id !== id) return t;
@@ -262,6 +268,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   }, [playbackState]);
 
   const commitTrackVolume = useCallback((id: string) => {
+    if (sessionLocked) return;
     const track = tracksRef.current.find((t) => t.id === id);
     if (track && !track.pending && sessionCode) {
       socketRef.current?.emit('track:update', { trackId: id, changes: { volume: track.volume } });
@@ -276,6 +283,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   }, []);
 
   const renameSession = useCallback(async (name: string) => {
+    if (sessionLocked) return;
     setSessionName(name);
     if (sessionCode) {
       updateSessionNameApi(sessionCode, name).catch((err) =>
@@ -303,6 +311,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   }, []);
 
   const uploadRecording = useCallback(async (id: string) => {
+    if (sessionLocked) return;
     const blob = pendingBlobsRef.current.get(id);
     const track = tracksRef.current.find((t) => t.id === id);
     if (!blob || !track || !sessionCode) return;
@@ -341,6 +350,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   }, [sessionCode]);
 
   const deleteTrack = useCallback(async (id: string) => {
+    if (sessionLocked) return;
     const track = tracksRef.current.find((t) => t.id === id);
     if (!track) return;
     pendingBlobsRef.current.delete(id);
@@ -391,5 +401,6 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
     isExporting,
     sessionName,
     renameSession,
+    sessionLocked,
   };
 }

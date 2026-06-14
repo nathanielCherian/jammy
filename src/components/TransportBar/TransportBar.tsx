@@ -19,6 +19,7 @@ interface Props {
   isExporting: boolean;
   sessionName: string | null;
   onRenameSession: (name: string) => void;
+  isSessionLocked: boolean;
 }
 
 function formatTime(seconds: number): string {
@@ -44,6 +45,7 @@ export function TransportBar({
   isExporting,
   sessionName,
   onRenameSession,
+  isSessionLocked,
 }: Props) {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
@@ -70,7 +72,7 @@ export function TransportBar({
     }
   }, [isRecording]);
 
-  const startEdit = () => { setDraftName(sessionName ?? ''); setEditing(true); };
+  const startEdit = () => { if (isSessionLocked) return; setDraftName(sessionName ?? ''); setEditing(true); };
   const commitEdit = () => {
     setEditing(false);
     const trimmed = draftName.trim();
@@ -116,8 +118,8 @@ export function TransportBar({
         <button
           className={`${styles.btn} ${styles.record} ${isRecording ? styles.recordActive : ''}`}
           onClick={onRecord}
-          disabled={isLoading || isPaused}
-          title={isRecording ? 'Stop recording' : 'Record'}
+          disabled={isLoading || isPaused || isSessionLocked}
+          title={isSessionLocked ? 'Session is locked' : isRecording ? 'Stop recording' : 'Record'}
         >
           <RecordIcon />
         </button>
@@ -162,11 +164,16 @@ export function TransportBar({
         />
       ) : (
         <span
-          className={`${styles.sessionName} ${!sessionName ? styles.sessionNameEmpty : ''}`}
+          className={`${styles.sessionName} ${!sessionName ? styles.sessionNameEmpty : ''} ${isSessionLocked ? styles.sessionNameLocked : ''}`}
           onClick={startEdit}
-          title="Click to rename"
+          title={isSessionLocked ? 'Session is locked' : 'Click to rename'}
         >
           {sessionName || 'Untitled Session'}
+        </span>
+      )}
+      {isSessionLocked && (
+        <span className={styles.lockBadge} title="This session is locked — read-only">
+          <LockIcon /> Read-only
         </span>
       )}
 
@@ -277,6 +284,15 @@ function DownloadIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 2v8M5 7l3 3 3-3" />
       <path d="M3 13h10" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 16 16" fill="currentColor">
+      <rect x="3" y="8" width="10" height="7" rx="1.5" />
+      <path d="M5 8V6a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
     </svg>
   );
 }

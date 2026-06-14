@@ -8,9 +8,10 @@ interface Props {
   initialTracks: Track[];
   sessionCode: string;
   initialName?: string | null;
+  initialLocked?: boolean;
 }
 
-export default function App({ initialTracks, sessionCode, initialName = null }: Props) {
+export default function App({ initialTracks, sessionCode, initialName = null, initialLocked = false }: Props) {
   const {
     tracks,
     clipDurations,
@@ -39,7 +40,8 @@ export default function App({ initialTracks, sessionCode, initialName = null }: 
     isExporting,
     sessionName,
     renameSession,
-  } = useAudioEngine(initialTracks, sessionCode, initialName);
+    sessionLocked,
+  } = useAudioEngine(initialTracks, sessionCode, initialName, initialLocked);
 
   const isLocked = playbackState === 'playing' || playbackState === 'recording';
 
@@ -69,6 +71,7 @@ export default function App({ initialTracks, sessionCode, initialName = null }: 
         isExporting={isExporting}
         sessionName={sessionName}
         onRenameSession={renameSession}
+        isSessionLocked={sessionLocked}
       />
       <Timeline
         tracks={tracks}
@@ -76,6 +79,7 @@ export default function App({ initialTracks, sessionCode, initialName = null }: 
         audioBuffers={audioBuffers}
         currentTime={currentTime}
         isLocked={isLocked}
+        isSessionLocked={sessionLocked}
         onSeek={seek}
         onTrackStartTimeChange={setTrackStartTime}
         onCommitStartTime={commitTrackStartTime}

@@ -8,6 +8,7 @@ export interface Session {
   id: string;
   code: string;
   name: string | null;
+  locked: boolean;
   createdAt: number;
 }
 

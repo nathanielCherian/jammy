@@ -12,6 +12,7 @@ export interface Session {
   id: string;
   code: string;
   name: string | null;
+  locked: boolean;
   createdAt: number;
 }
 
@@ -31,6 +32,7 @@ export interface SessionRow {
   id: string;
   code: string;
   name: string | null;
+  locked: number;
   created_at: number;
 }
 
@@ -51,6 +53,7 @@ export function rowToSession(row: SessionRow): Session {
     id: row.id,
     code: row.code,
     name: row.name,
+    locked: Boolean(row.locked),
     createdAt: row.created_at,
   };
 }

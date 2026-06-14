@@ -11,8 +11,8 @@ export default function SessionPage() {
   const { code } = useParams<{ code: string }>();
   const [status, setStatus] = useState<Status>('loading');
   const [tracks, setTracks] = useState<Track[]>([]);
-
   const [sessionName, setSessionName] = useState<string | null>(null);
+  const [sessionLocked, setSessionLocked] = useState(false);
 
   useEffect(() => {
     const meta = document.createElement('meta');
@@ -36,6 +36,7 @@ export default function SessionPage() {
         }));
         setTracks(resolved);
         setSessionName(session.name);
+        setSessionLocked(session.locked);
         setStatus('ready');
       })
       .catch(() => setStatus('error'));
@@ -60,5 +61,5 @@ export default function SessionPage() {
     );
   }
 
-  return <App initialTracks={tracks} sessionCode={code!} initialName={sessionName} />;
+  return <App initialTracks={tracks} sessionCode={code!} initialName={sessionName} initialLocked={sessionLocked} />;
 }

@@ -30,6 +30,12 @@ db.exec(`
   );
 `);
 
+try {
+  db.exec('ALTER TABLE sessions ADD COLUMN locked INTEGER NOT NULL DEFAULT 0');
+} catch {
+  // column already exists — safe to ignore
+}
+
 export const queries = {
   insertSession: db.prepare<[string, string, string | null, number]>(
     'INSERT INTO sessions (id, code, name, created_at) VALUES (?, ?, ?, ?)'

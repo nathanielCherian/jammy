@@ -11,6 +11,7 @@ interface Props {
   audioBuffers: Map<string, AudioBuffer>;
   currentTime: number;
   isLocked: boolean;
+  isSessionLocked: boolean;
   onSeek: (time: number) => void;
   onTrackStartTimeChange: (id: string, newStart: number) => void;
   onCommitStartTime: (id: string) => void;
@@ -30,6 +31,7 @@ export function Timeline({
   audioBuffers,
   currentTime,
   isLocked,
+  isSessionLocked,
   onSeek,
   onTrackStartTimeChange,
   onCommitStartTime,
@@ -55,6 +57,7 @@ export function Timeline({
               onStartTimeChange={onTrackStartTimeChange}
               onCommit={onCommitStartTime}
               isLocked={isLocked}
+              isSessionLocked={isSessionLocked}
               onVolumeChange={onTrackVolumeChange}
               onCommitVolume={onCommitTrackVolume}
               onToggleEnabled={onToggleTrackEnabled}
