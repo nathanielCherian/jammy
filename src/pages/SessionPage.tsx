@@ -13,7 +13,7 @@ export default function SessionPage() {
   const [tracks, setTracks] = useState<Track[]>([]);
 
   useEffect(() => {
-    document.title = `Session ${code ?? ''} | Jammy`;
+    document.title = `${sessionName ?? 'Untitled Session'} | Jammy`;
     const meta = document.createElement('meta');
     meta.name = 'robots';
     meta.content = 'noindex, nofollow';
