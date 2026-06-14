@@ -24,8 +24,9 @@ sudo rsync -a --delete dist/ "$WEB_DIR/"
 
 echo "==> Building backend..."
 cd "$REPO_DIR/backend"
-npm ci --omit=dev --prefer-offline
+npm ci --prefer-offline
 npm run build
+npm prune --omit=dev
 
 echo "==> Restarting backend service..."
 sudo systemctl restart jammy-backend

@@ -12,15 +12,19 @@ export default function SessionPage() {
   const [status, setStatus] = useState<Status>('loading');
   const [tracks, setTracks] = useState<Track[]>([]);
 
+  const [sessionName, setSessionName] = useState<string | null>(null);
+
   useEffect(() => {
-    document.title = `${sessionName ?? 'Untitled Session'} | Jammy`;
     const meta = document.createElement('meta');
     meta.name = 'robots';
     meta.content = 'noindex, nofollow';
     document.head.appendChild(meta);
     return () => { document.head.removeChild(meta); };
   }, [code]);
-  const [sessionName, setSessionName] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = sessionName ? `${sessionName} | Jammy` : 'Untitled Session | Jammy';
+  }, [sessionName]);
 
   useEffect(() => {
     if (!code) { setStatus('error'); return; }
