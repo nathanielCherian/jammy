@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /session/
+
+Sitemap: https://jammy.nathanielc.com/sitemap.xml

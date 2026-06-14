@@ -11,6 +11,15 @@ export default function SessionPage() {
   const { code } = useParams<{ code: string }>();
   const [status, setStatus] = useState<Status>('loading');
   const [tracks, setTracks] = useState<Track[]>([]);
+
+  useEffect(() => {
+    document.title = `Session ${code ?? ''} | Jammy`;
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => { document.head.removeChild(meta); };
+  }, [code]);
   const [sessionName, setSessionName] = useState<string | null>(null);
 
   useEffect(() => {

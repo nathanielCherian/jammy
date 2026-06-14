@@ -1,0 +1,12 @@
+{
+  "name": "Jammy",
+  "short_name": "Jammy",
+  "description": "Collaborative browser DAW",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#7c4dff",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

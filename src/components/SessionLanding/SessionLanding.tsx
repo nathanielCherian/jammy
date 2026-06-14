@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createSession } from '../../api';
 import styles from './SessionLanding.module.css';
 
 export default function SessionLanding() {
   const navigate = useNavigate();
+  useEffect(() => { document.title = 'Jammy — Collaborative Browser DAW'; }, []);
+
   const [joinCode, setJoinCode] = useState('');
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
