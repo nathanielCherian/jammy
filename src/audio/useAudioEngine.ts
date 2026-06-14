@@ -19,6 +19,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   const [monitorEnabled, setMonitorEnabled] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [sessionName, setSessionName] = useState<string | null>(initialName);
+  const [uploadingTracks, setUploadingTracks] = useState<Set<string>>(new Set());
   const [sessionLocked] = useState(initialLocked);
 
   const engineRef = useRef(new AudioEngine());
@@ -41,6 +42,10 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
   const recordStartTimeRef = useRef(0);
   const recordingCounterRef = useRef(0);
   const pendingBlobsRef = useRef<Map<string, Blob>>(new Map());
+
+  useEffect(() => {
+    return () => { engineRef.current.stop(); };
+  }, []);
 
   useEffect(() => {
     if (initialTracks.length === 0) {
@@ -316,6 +321,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
     const track = tracksRef.current.find((t) => t.id === id);
     if (!blob || !track || !sessionCode) return;
 
+    setUploadingTracks((prev) => new Set(prev).add(id));
     try {
       const uploaded = await uploadTrack(sessionCode, blob, {
         name: track.name,
@@ -346,8 +352,10 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
       });
     } catch (err) {
       console.warn('Upload failed:', err);
+    } finally {
+      setUploadingTracks((prev) => { const s = new Set(prev); s.delete(id); return s; });
     }
-  }, [sessionCode]);
+  }, [sessionCode, sessionLocked]);
 
   const deleteTrack = useCallback(async (id: string) => {
     if (sessionLocked) return;
@@ -402,5 +410,6 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
     sessionName,
     renameSession,
     sessionLocked,
+    uploadingTracks,
   };
 }

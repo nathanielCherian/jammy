@@ -15,9 +15,10 @@ interface Props {
   onCommit: (id: string) => void;
   onUpload: (id: string) => void;
   onDiscard: (id: string) => void;
+  uploadingTracks: Set<string>;
 }
 
-export function Clip({ track, clipDuration, audioBuffer, isLocked, onStartTimeChange, onCommit, onUpload, onDiscard }: Props) {
+export function Clip({ track, clipDuration, audioBuffer, isLocked, onStartTimeChange, onCommit, onUpload, onDiscard, uploadingTracks }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const dragStartX = useRef(0);
   const originalStart = useRef(0);
@@ -86,13 +87,15 @@ export function Clip({ track, clipDuration, audioBuffer, isLocked, onStartTimeCh
           <button
             className={`${styles.pendingBtn} ${styles.pendingUpload}`}
             onClick={(e) => { e.stopPropagation(); onUpload(track.id); }}
-            title="Upload recording"
+            disabled={uploadingTracks.has(track.id)}
+            title={uploadingTracks.has(track.id) ? 'Uploading…' : 'Upload recording'}
           >
-            ↑ Upload
+            {uploadingTracks.has(track.id) ? 'Uploading…' : '↑ Upload'}
           </button>
           <button
             className={`${styles.pendingBtn} ${styles.pendingDiscard}`}
             onClick={(e) => { e.stopPropagation(); onDiscard(track.id); }}
+            disabled={uploadingTracks.has(track.id)}
             title="Discard recording"
           >
             ✕ Discard

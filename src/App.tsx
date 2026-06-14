@@ -41,6 +41,7 @@ export default function App({ initialTracks, sessionCode, initialName = null, in
     sessionName,
     renameSession,
     sessionLocked,
+    uploadingTracks,
   } = useAudioEngine(initialTracks, sessionCode, initialName, initialLocked);
 
   const isLocked = playbackState === 'playing' || playbackState === 'recording';
@@ -89,6 +90,7 @@ export default function App({ initialTracks, sessionCode, initialName = null, in
         onUploadRecording={uploadRecording}
         onDiscardRecording={discardRecording}
         onDeleteTrack={deleteTrack}
+        uploadingTracks={uploadingTracks}
       />
     </div>
   );

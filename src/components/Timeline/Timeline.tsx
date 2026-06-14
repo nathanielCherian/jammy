@@ -21,6 +21,7 @@ interface Props {
   onUploadRecording: (id: string) => void;
   onDiscardRecording: (id: string) => void;
   onDeleteTrack: (id: string) => void;
+  uploadingTracks: Set<string>;
 }
 
 const TOTAL_WIDTH = LABEL_WIDTH + SONG_DURATION * PIXELS_PER_SECOND + 40;
@@ -41,6 +42,7 @@ export function Timeline({
   onUploadRecording,
   onDiscardRecording,
   onDeleteTrack,
+  uploadingTracks,
 }: Props) {
   return (
     <div className={styles.timelineScroll}>
@@ -64,6 +66,7 @@ export function Timeline({
               onUploadRecording={onUploadRecording}
               onDiscardRecording={onDiscardRecording}
               onDeleteTrack={onDeleteTrack}
+              uploadingTracks={uploadingTracks}
             />
           ))}
         </div>
