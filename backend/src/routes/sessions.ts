@@ -8,7 +8,9 @@ import {
   deleteSession,
   getTracksBySession,
   isCodeTaken,
+  updateSessionName,
 } from '../db';
+import { getIo } from '../io';
 
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
 
@@ -44,6 +46,20 @@ export async function sessionRoutes(app: FastifyInstance) {
     const tracks = getTracksBySession(session.id);
     reply.send({ session, tracks });
   });
+
+  app.patch<{ Params: { code: string }; Body: { name: string } }>(
+    '/sessions/:code',
+    async (req, reply) => {
+      const session = getSessionByCode(req.params.code);
+      if (!session) return reply.status(404).send({ error: 'Session not found' });
+
+      const name = (req.body?.name ?? '').trim().slice(0, 100);
+      updateSessionName(session.id, name);
+
+      getIo().to(session.id).emit('session:nameUpdated', { name });
+      reply.send({ name });
+    }
+  );
 
   app.delete<{ Params: { code: string } }>('/sessions/:code', async (req, reply) => {
     const session = getSessionByCode(req.params.code);

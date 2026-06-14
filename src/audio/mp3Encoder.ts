@@ -16,7 +16,7 @@ export function encodeToMp3(buffer: AudioBuffer, bitrate = 128): Blob {
   const left = toInt16(buffer.getChannelData(0));
   const right = channels > 1 ? toInt16(buffer.getChannelData(1)) : left;
   const BLOCK = 1152; // required MPEG-1 frame size
-  const mp3Data: Int8Array[] = [];
+  const mp3Data: Uint8Array[] = [];
 
   for (let i = 0; i < left.length; i += BLOCK) {
     const chunk = encoder.encodeBuffer(left.subarray(i, i + BLOCK), right.subarray(i, i + BLOCK));

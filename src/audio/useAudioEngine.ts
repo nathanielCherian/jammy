@@ -4,12 +4,12 @@ import { Track, PlaybackState } from '../types';
 import { SONG_DURATION } from '../constants';
 import { AudioEngine } from './audioEngine';
 import { Recorder } from './recorder';
-import { API_URL, uploadTrack, deleteTrack as deleteTrackApi } from '../api';
+import { API_URL, uploadTrack, deleteTrack as deleteTrackApi, updateSessionName as updateSessionNameApi } from '../api';
 import { encodeToMp3 } from './mp3Encoder';
 
 const REC_COLORS = ['#ff7043', '#ab47bc', '#26a69a', '#ef5350', '#7e57c2', '#26c6da'];
 
-export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
+export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', initialName: string | null = null) {
   const [tracks, setTracks] = useState<Track[]>(initialTracks);
   const [playbackState, setPlaybackState] = useState<PlaybackState>('stopped');
   const [currentTime, setCurrentTime] = useState(0);
@@ -18,6 +18,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
   const [audioBuffers, setAudioBuffers] = useState<Map<string, AudioBuffer>>(new Map());
   const [monitorEnabled, setMonitorEnabled] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
+  const [sessionName, setSessionName] = useState<string | null>(initialName);
 
   const engineRef = useRef(new AudioEngine());
   const recorderRef = useRef(new Recorder());
@@ -71,6 +72,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     socket.on('session:state', ({ onlineCount: n }: { onlineCount: number }) => setOnlineCount(n));
     socket.on('user:joined',   ({ onlineCount: n }: { onlineCount: number }) => setOnlineCount(n));
     socket.on('user:left',     ({ onlineCount: n }: { onlineCount: number }) => setOnlineCount(n));
+    socket.on('session:nameUpdated', ({ name }: { name: string }) => setSessionName(name));
 
     const enqueue = (fn: () => void) => {
       if (playbackStateRef.current === 'playing' || playbackStateRef.current === 'recording') {
@@ -273,6 +275,15 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     });
   }, []);
 
+  const renameSession = useCallback(async (name: string) => {
+    setSessionName(name);
+    if (sessionCode) {
+      updateSessionNameApi(sessionCode, name).catch((err) =>
+        console.warn('Rename failed:', err)
+      );
+    }
+  }, [sessionCode]);
+
   const exportMix = useCallback(async () => {
     setIsExporting(true);
     try {
@@ -378,5 +389,7 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '') {
     onlineCount,
     exportMix,
     isExporting,
+    sessionName,
+    renameSession,
   };
 }

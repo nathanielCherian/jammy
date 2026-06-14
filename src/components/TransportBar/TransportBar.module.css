@@ -17,6 +17,44 @@
   margin-right: 4px;
 }
 
+.sessionName {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.sessionName:hover {
+  border-color: var(--border);
+  background: var(--bg-dark);
+}
+
+.sessionNameEmpty {
+  color: var(--text-muted);
+  font-weight: 400;
+  font-style: italic;
+}
+
+.nameInput {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  background: var(--bg-dark);
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  padding: 4px 8px;
+  max-width: 200px;
+  outline: none;
+}
+
 .divider {
   width: 1px;
   height: 24px;

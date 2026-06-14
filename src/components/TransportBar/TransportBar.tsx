@@ -17,6 +17,8 @@ interface Props {
   onToggleMonitor: () => void;
   onExportMp3: () => void;
   isExporting: boolean;
+  sessionName: string | null;
+  onRenameSession: (name: string) => void;
 }
 
 function formatTime(seconds: number): string {
@@ -40,8 +42,12 @@ export function TransportBar({
   onToggleMonitor,
   onExportMp3,
   isExporting,
+  sessionName,
+  onRenameSession,
 }: Props) {
   const navigate = useNavigate();
+  const [editing, setEditing] = useState(false);
+  const [draftName, setDraftName] = useState('');
   const isPlaying = playbackState === 'playing';
   const isRecording = playbackState === 'recording';
   const isPaused = playbackState === 'paused';
@@ -63,6 +69,17 @@ export function TransportBar({
       return () => cancelAnimationFrame(recRafRef.current);
     }
   }, [isRecording]);
+
+  const startEdit = () => { setDraftName(sessionName ?? ''); setEditing(true); };
+  const commitEdit = () => {
+    setEditing(false);
+    const trimmed = draftName.trim();
+    if (trimmed) onRenameSession(trimmed);
+  };
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') commitEdit();
+    if (e.key === 'Escape') setEditing(false);
+  };
 
   return (
     <div className={styles.bar}>
@@ -131,6 +148,26 @@ export function TransportBar({
 
       {isRecording && monitorEnabled && (
         <span className={styles.headphoneHint}>Use headphones to prevent feedback</span>
+      )}
+
+      {editing ? (
+        <input
+          className={styles.nameInput}
+          value={draftName}
+          onChange={(e) => setDraftName(e.target.value)}
+          onBlur={commitEdit}
+          onKeyDown={handleNameKeyDown}
+          autoFocus
+          maxLength={100}
+        />
+      ) : (
+        <span
+          className={`${styles.sessionName} ${!sessionName ? styles.sessionNameEmpty : ''}`}
+          onClick={startEdit}
+          title="Click to rename"
+        >
+          {sessionName || 'Untitled Session'}
+        </span>
       )}
 
       <div className={styles.spacer} />

@@ -11,16 +11,18 @@ export default function SessionPage() {
   const { code } = useParams<{ code: string }>();
   const [status, setStatus] = useState<Status>('loading');
   const [tracks, setTracks] = useState<Track[]>([]);
+  const [sessionName, setSessionName] = useState<string | null>(null);
 
   useEffect(() => {
     if (!code) { setStatus('error'); return; }
     getSession(code)
-      .then(({ tracks: remoteTracks }) => {
+      .then(({ session, tracks: remoteTracks }) => {
         const resolved = remoteTracks.map((t) => ({
           ...t,
           audioUrl: API_URL + t.audioUrl,
         }));
         setTracks(resolved);
+        setSessionName(session.name);
         setStatus('ready');
       })
       .catch(() => setStatus('error'));
@@ -45,5 +47,5 @@ export default function SessionPage() {
     );
   }
 
-  return <App initialTracks={tracks} sessionCode={code!} />;
+  return <App initialTracks={tracks} sessionCode={code!} initialName={sessionName} />;
 }

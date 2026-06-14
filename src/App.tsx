@@ -7,9 +7,10 @@ import styles from './App.module.css';
 interface Props {
   initialTracks: Track[];
   sessionCode: string;
+  initialName?: string | null;
 }
 
-export default function App({ initialTracks, sessionCode }: Props) {
+export default function App({ initialTracks, sessionCode, initialName = null }: Props) {
   const {
     tracks,
     clipDurations,
@@ -36,7 +37,9 @@ export default function App({ initialTracks, sessionCode }: Props) {
     onlineCount,
     exportMix,
     isExporting,
-  } = useAudioEngine(initialTracks, sessionCode);
+    sessionName,
+    renameSession,
+  } = useAudioEngine(initialTracks, sessionCode, initialName);
 
   const isLocked = playbackState === 'playing' || playbackState === 'recording';
 
@@ -64,6 +67,8 @@ export default function App({ initialTracks, sessionCode }: Props) {
         onToggleMonitor={toggleMonitor}
         onExportMp3={exportMix}
         isExporting={isExporting}
+        sessionName={sessionName}
+        onRenameSession={renameSession}
       />
       <Timeline
         tracks={tracks}

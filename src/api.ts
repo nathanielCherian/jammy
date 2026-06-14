@@ -28,6 +28,15 @@ export async function getSession(code: string): Promise<{ session: Session; trac
   return res.json();
 }
 
+export async function updateSessionName(code: string, name: string): Promise<void> {
+  const res = await fetch(`${API_URL}/sessions/${code.toUpperCase()}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) throw new Error('Rename failed');
+}
+
 export async function patchTrack(
   code: string,
   trackId: string,

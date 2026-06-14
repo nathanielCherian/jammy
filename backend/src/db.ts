@@ -47,6 +47,10 @@ export const queries = {
     'DELETE FROM sessions WHERE id = ?'
   ),
 
+  updateSessionName: db.prepare<[string, string]>(
+    'UPDATE sessions SET name = ? WHERE id = ?'
+  ),
+
   codeExists: db.prepare<[string], { count: number }>(
     'SELECT COUNT(*) as count FROM sessions WHERE code = ?'
   ),
@@ -89,6 +93,10 @@ export function getSessionById(id: string): Session | null {
 
 export function deleteSession(id: string): void {
   queries.deleteSession.run(id);
+}
+
+export function updateSessionName(id: string, name: string): void {
+  queries.updateSessionName.run(name, id);
 }
 
 export function isCodeTaken(code: string): boolean {
