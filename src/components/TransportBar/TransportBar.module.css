@@ -290,6 +290,14 @@
   color: #81c784;
 }
 
+.importBtn {
+  color: var(--text-muted);
+}
+
+.importBtn:hover:not(:disabled) {
+  color: var(--text);
+}
+
 .lockBadge {
   display: flex;
   align-items: center;

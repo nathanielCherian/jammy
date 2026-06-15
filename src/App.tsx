@@ -42,6 +42,7 @@ export default function App({ initialTracks, sessionCode, initialName = null, in
     renameSession,
     sessionLocked,
     uploadingTracks,
+    importFile,
   } = useAudioEngine(initialTracks, sessionCode, initialName, initialLocked);
 
   const isLocked = playbackState === 'playing' || playbackState === 'recording';
@@ -73,6 +74,7 @@ export default function App({ initialTracks, sessionCode, initialName = null, in
         sessionName={sessionName}
         onRenameSession={renameSession}
         isSessionLocked={sessionLocked}
+        onImportFile={importFile}
       />
       <Timeline
         tracks={tracks}

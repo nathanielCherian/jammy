@@ -2,13 +2,23 @@ import { FastifyInstance } from 'fastify';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { getSessionByCode, createTrack, updateTrack, deleteTrack } from '../db';
+import { getSessionByCode, createTrack, updateTrack, deleteTrack, getTrack } from '../db';
 import { Track } from '../types';
 import { getIo } from '../io';
 
 const UPLOADS_DIR = path.join(__dirname, '..', '..', 'uploads');
 
 export async function trackRoutes(app: FastifyInstance) {
+  const MIME_TO_EXT: Record<string, string> = {
+    'audio/webm': '.webm',
+    'audio/mpeg': '.mp3',
+    'audio/mp4': '.mp4',
+    'audio/ogg': '.ogg',
+    'audio/wav': '.wav',
+    'audio/x-wav': '.wav',
+    'audio/flac': '.flac',
+  };
+
   app.post<{ Params: { code: string } }>('/sessions/:code/tracks', async (req, reply) => {
     const session = getSessionByCode(req.params.code);
     if (!session) return reply.status(404).send({ error: 'Session not found' });
@@ -16,11 +26,13 @@ export async function trackRoutes(app: FastifyInstance) {
     // Consume ALL parts before any early return — exiting a for-await loop
     // early without draining the stream causes the connection to hang.
     let fileBuffer: Buffer | null = null;
+    let fileMime = 'audio/webm';
     let metadata: Partial<Track> = {};
     let metadataParseError = false;
 
     for await (const part of req.parts()) {
       if (part.type === 'file') {
+        fileMime = part.mimetype?.split(';')[0].trim() ?? 'audio/webm';
         fileBuffer = await part.toBuffer();
       } else if (part.type === 'field' && part.fieldname === 'metadata') {
         try {
@@ -38,7 +50,8 @@ export async function trackRoutes(app: FastifyInstance) {
     const sessionDir = path.join(UPLOADS_DIR, session.id);
     fs.mkdirSync(sessionDir, { recursive: true });
 
-    const filename = `${trackId}.webm`;
+    const ext = MIME_TO_EXT[fileMime] ?? '.webm';
+    const filename = `${trackId}${ext}`;
     fs.writeFileSync(path.join(sessionDir, filename), fileBuffer);
 
     const audioUrl = `/uploads/${session.id}/${filename}`;
@@ -79,11 +92,14 @@ export async function trackRoutes(app: FastifyInstance) {
       const session = getSessionByCode(req.params.code);
       if (!session) return reply.status(404).send({ error: 'Session not found' });
 
+      const track = getTrack(req.params.trackId, session.id);
       const deleted = deleteTrack(req.params.trackId, session.id);
       if (!deleted) return reply.status(404).send({ error: 'Track not found' });
 
-      const filePath = path.join(UPLOADS_DIR, session.id, `${req.params.trackId}.webm`);
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      if (track) {
+        const filePath = path.join(UPLOADS_DIR, session.id, path.basename(track.audioUrl));
+        if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      }
 
       const socketId = req.headers['x-socket-id'] as string | undefined;
       const io = getIo();

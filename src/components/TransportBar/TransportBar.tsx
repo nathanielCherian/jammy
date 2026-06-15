@@ -20,6 +20,7 @@ interface Props {
   sessionName: string | null;
   onRenameSession: (name: string) => void;
   isSessionLocked: boolean;
+  onImportFile: (file: File) => void;
 }
 
 function formatTime(seconds: number): string {
@@ -46,8 +47,10 @@ export function TransportBar({
   sessionName,
   onRenameSession,
   isSessionLocked,
+  onImportFile,
 }: Props) {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState('');
   const isPlaying = playbackState === 'playing';
@@ -133,6 +136,25 @@ export function TransportBar({
           }
         >
           {monitorEnabled ? <MonitorOnIcon /> : <MonitorOffIcon />}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="audio/*"
+          style={{ display: 'none' }}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) onImportFile(file);
+            e.target.value = '';
+          }}
+        />
+        <button
+          className={`${styles.btn} ${styles.importBtn}`}
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isLoading || isSessionLocked}
+          title="Import audio file"
+        >
+          <ImportIcon />
         </button>
       </div>
 
@@ -284,6 +306,15 @@ function DownloadIcon() {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 2v8M5 7l3 3 3-3" />
       <path d="M3 13h10" />
+    </svg>
+  );
+}
+
+function ImportIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" />
+      <path d="M8 2v8M5 7l3 3 3-3" />
     </svg>
   );
 }

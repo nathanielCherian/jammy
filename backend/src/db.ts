@@ -127,6 +127,11 @@ export function getTracksBySession(sessionId: string): Track[] {
   return queries.getTracksBySession.all(sessionId).map(rowToTrack);
 }
 
+export function getTrack(id: string, sessionId: string): Track | null {
+  const row = queries.getTrack.get(id, sessionId);
+  return row ? rowToTrack(row) : null;
+}
+
 export function updateTrack(
   id: string,
   sessionId: string,

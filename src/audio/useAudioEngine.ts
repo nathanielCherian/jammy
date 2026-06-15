@@ -223,6 +223,34 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
     }
   }, []);
 
+  const importFile = useCallback(async (file: File) => {
+    if (sessionLocked) return;
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const ctx = engineRef.current.getAudioContext();
+      const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+
+      recordingCounterRef.current += 1;
+      const recNum = recordingCounterRef.current;
+      const id = `rec-${recNum}`;
+      const color = REC_COLORS[(recNum - 1) % REC_COLORS.length];
+      const trackName = file.name.replace(/\.[^.]+$/, '');
+
+      const newTrack: Track = {
+        id, name: trackName, audioUrl: '',
+        startTime: 0, volume: 0.85, color, enabled: true, pending: true,
+      };
+
+      pendingBlobsRef.current.set(id, file);
+      engineRef.current.addBuffer(id, audioBuffer);
+      setTracks((prev) => [...prev, newTrack]);
+      setClipDurations((prev) => new Map(prev).set(id, audioBuffer.duration));
+      setAudioBuffers((prev) => new Map(prev).set(id, audioBuffer));
+    } catch {
+      alert('Could not decode audio file. Make sure it\'s a valid audio format.');
+    }
+  }, [sessionLocked]);
+
   const setTrackStartTime = useCallback((id: string, newStart: number) => {
     if (sessionLocked) return;
     setTracks((prev) => prev.map((t) => (t.id === id ? { ...t, startTime: newStart } : t)));
@@ -411,5 +439,6 @@ export function useAudioEngine(initialTracks: Track[] = [], sessionCode = '', in
     renameSession,
     sessionLocked,
     uploadingTracks,
+    importFile,
   };
 }
