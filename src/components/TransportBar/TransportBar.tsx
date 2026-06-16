@@ -313,8 +313,7 @@ function DownloadIcon() {
 function ImportIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 11v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" />
-      <path d="M8 2v8M5 7l3 3 3-3" />
+      <path d="M1 5.5a1 1 0 0 1 1-1h3.4l1.6 2H14a1 1 0 0 1 1 1V13a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V5.5z" />
     </svg>
   );
 }
