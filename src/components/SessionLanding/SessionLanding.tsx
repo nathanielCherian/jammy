@@ -35,6 +35,12 @@ export default function SessionLanding() {
 
   return (
     <div className={styles.page}>
+      <footer className={styles.footer}>
+        Created by{' '}
+        <a href="https://nathanielc.com/" target="_blank" rel="noopener noreferrer">
+          Nathaniel Cherian
+        </a>
+      </footer>
       <div className={styles.card}>
         <h1 className={styles.logo}>JAMMY</h1>
         <p className={styles.tagline}>Collaborative audio recording in the browser</p>
